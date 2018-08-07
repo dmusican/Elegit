@@ -26,9 +26,7 @@ import javafx.util.Callback;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
@@ -54,7 +52,6 @@ public class MergeWindowController {
     @FXML private Button mergeButton;
     @FXML private Text mergeRemoteTrackingText;
     @FXML private HBox remoteBranchBox;
-    //@FXML private Text intoText1;
     @FXML private AnchorPane arrowPane;
     @FXML private HBox localBranchBox1;
     @FXML private TabPane mergeTypePane;
@@ -169,7 +166,6 @@ public class MergeWindowController {
      */
     private void hideRemoteMerge() {
         remoteBranchBox.setVisible(false);
-        //intoText1.setVisible(false);
         arrowPane.setVisible(false);
         localBranchBox1.setVisible(false);
     }
@@ -202,7 +198,7 @@ public class MergeWindowController {
      * Handler for merge button. Will merge selected local branch into the current
      * branch if in the local tab, otherwise it will merge from fetch.
      */
-    public void handleMergeButton() throws GitAPIException, IOException {
+    public void handleMergeButton()  {
         try {
             if (mergeTypePane.getSelectionModel().isSelected(LOCAL_PANE)) {
                 if (!branchDropdownSelector.getSelectionModel().isEmpty()) localBranchMerge();
@@ -215,6 +211,7 @@ public class MergeWindowController {
             showJGitInternalError(e);
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();
+            e.printStackTrace();
         }
     }
 
@@ -224,7 +221,6 @@ public class MergeWindowController {
     private synchronized void mergeFromFetch() {
         Main.assertFxThread();
 
-        System.out.println("in mergeFromFetch");
         // Do the merge, and close the window if successful
         sessionController.mergeFromFetchCreateChain(notificationPaneController)
                 .subscribe(results -> {
@@ -258,15 +254,8 @@ public class MergeWindowController {
         // Get the merge result from the branch merge
         MergeResult mergeResult =
                 SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().mergeWithBranch(selectedBranch);
-        //sessionModel.addMergeResult(mergeResult);
-//        String current = sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getRefName();
-//        HashMap<String, String> results = new HashMap<>();
-//        results.put("mergedBranch", selectedBranch.getRefName());
-//        results.put("baseBranch", current);
-//        //ObjectId[] parents = mergeResult.getMergedCommits();
-//        results.put("baseParent", mergeResult.getMergedCommits()[0].toString());
-//        results.put("mergedParent", mergeResult.getMergedCommits()[1].toString());
-//        sessionModel.addMergeResult(results);
+        sessionController.updateCommandText("git merge "+selectedBranch);
+
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
             // TODO: Call gitStatus once I've got it better threaded

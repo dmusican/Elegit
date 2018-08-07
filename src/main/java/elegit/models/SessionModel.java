@@ -72,6 +72,7 @@ public class SessionModel {
 
     @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
     private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
+    private final AtomicReference<ThreadsafeGitManager> threadsafeGitManager = new AtomicReference<>();
 
     /**
      * @return the SessionModel object
@@ -150,7 +151,7 @@ public class SessionModel {
         } catch(IOException | ClassNotFoundException | BackingStoreException e){
             logger.error("Some sort of exception loading recent repo helpers");
             logger.debug(e.getStackTrace());
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
     }
 
@@ -197,7 +198,7 @@ public class SessionModel {
         }catch(IOException | BackingStoreException | ClassNotFoundException e){
             logger.error("Some sort of error loading most recent repo helper");
             logger.debug(e.getStackTrace());
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
     }
 
@@ -218,6 +219,8 @@ public class SessionModel {
         this.saveMostRecentRepoPathString();
 
         openedRepos.onNext(this.currentRepoHelper.get());
+
+        threadsafeGitManager.set(getCurrentRepoHelper().getThreadsafeGitManager().get());
     }
 
     public synchronized void subscribeToOpenedRepos(Consumer<RepoHelper> consumer) {
@@ -318,10 +321,10 @@ public class SessionModel {
      */
     private Set<String> getUntrackedFiles(Status status) throws GitAPIException {
         if(status == null) {
-            status = new Git(this.getCurrentRepo()).status().call();
+            status = threadsafeGitManager.get().getStatus();
         }
 
-        return Collections.unmodifiableSet(status.getUntracked());
+        return Collections.unmodifiableSet(threadsafeGitManager.get().getUntracked(status));
     }
 
     /**
@@ -332,10 +335,10 @@ public class SessionModel {
      */
     private Set<String> getIgnoredFiles(Status status) throws GitAPIException {
         if(status == null) {
-            status = new Git(this.getCurrentRepo()).status().call();
+            status = threadsafeGitManager.get().getStatus();;
         }
 
-        return Collections.unmodifiableSet(status.getIgnoredNotInIndex());
+        return Collections.unmodifiableSet(threadsafeGitManager.get().getIgnoredNotInIndex(status));
     }
 
     /**
@@ -346,10 +349,10 @@ public class SessionModel {
      */
     public Set<String> getConflictingFiles(Status status) throws GitAPIException {
         if (status == null) {
-            status = new Git(this.getCurrentRepo()).status().call();
+            status = threadsafeGitManager.get().getStatus();
         }
 
-        return Collections.unmodifiableSet(status.getConflicting());
+        return Collections.unmodifiableSet(threadsafeGitManager.get().getConflicting(status));
     }
 
     /**
@@ -360,10 +363,10 @@ public class SessionModel {
      */
     private Set<String> getMissingFiles(Status status) throws GitAPIException {
         if(status == null) {
-            status = new Git(this.getCurrentRepo()).status().call();
+            status = threadsafeGitManager.get().getStatus();
         }
 
-        return Collections.unmodifiableSet(status.getMissing());
+        return Collections.unmodifiableSet(threadsafeGitManager.get().getMissing(status));
     }
 
     /**
@@ -376,10 +379,10 @@ public class SessionModel {
      */
     private Set<String> getModifiedFiles(Status status) throws GitAPIException {
         if(status == null) {
-            status = new Git(this.getCurrentRepo()).status().call();
+            status = threadsafeGitManager.get().getStatus();
         }
 
-        return Collections.unmodifiableSet(status.getModified());
+        return Collections.unmodifiableSet(threadsafeGitManager.get().getModified(status));
     }
 
 
@@ -391,11 +394,11 @@ public class SessionModel {
      */
     private Set<String> getStagedFiles(Status status) throws GitAPIException {
         if(status == null) {
-            status = new Git(this.getCurrentRepo()).status().call();
+            status = threadsafeGitManager.get().getStatus();
         }
         Set<String> stagedFiles = ConcurrentHashMap.newKeySet();
-        stagedFiles.addAll(status.getChanged());
-        stagedFiles.addAll(status.getAdded());
+        stagedFiles.addAll(threadsafeGitManager.get().getChanged(status));
+        stagedFiles.addAll(threadsafeGitManager.get().getAdded(status));
         return Collections.unmodifiableSet(stagedFiles);
     }
 
@@ -405,7 +408,7 @@ public class SessionModel {
      * @throws GitAPIException if the 'git status' call fails.
      */
     public boolean modifiedAndStagedFilesAreSame() throws GitAPIException {
-        Status status = new Git(this.getCurrentRepo()).status().call();
+        Status status = threadsafeGitManager.get().getStatus();
         return getModifiedFiles(status).equals(getStagedFiles(status));
     }
 
@@ -417,7 +420,7 @@ public class SessionModel {
      * @throws GitAPIException if the `git status` calls fail.
      */
     public List<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
-        Status status = new Git(this.getCurrentRepo()).status().call();
+        Status status = threadsafeGitManager.get().getStatus();
         Set<String> modifiedFiles = getModifiedFiles(status);
         Set<String> missingFiles = getMissingFiles(status);
         Set<String> untrackedFiles = getUntrackedFiles(status);
@@ -502,7 +505,7 @@ public class SessionModel {
     public List<RepoFile> getAllRepoFiles() throws GitAPIException, IOException {
         List<RepoFile> allFiles = new ArrayList<>(getAllChangedRepoFiles());
 
-        Status status = new Git(this.getCurrentRepo()).status().call();
+        Status status = threadsafeGitManager.get().getStatus();
 
         for(String ignoredFileString : getIgnoredFiles(status)){
             IgnoredRepoFile ignoredRepoFile = new IgnoredRepoFile(ignoredFileString, this.getCurrentRepoHelper());

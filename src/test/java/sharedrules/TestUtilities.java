@@ -73,10 +73,10 @@ public class TestUtilities {
         // Set up remote repo
         Path remoteFilePath = remoteRepoDirectoryFull.resolve("file.txt");
         Files.write(remoteFilePath, "testSshPassword".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
+        //ArrayList<Path> paths = new ArrayList<>();
+        //paths.add(remoteFilePath);
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteRepoDirectoryFull, null);
-        helperServer.addFilePathsTest(paths);
+        helperServer.addFilePathTest(remoteFilePath);
         helperServer.commit("Initial unit test commit");
 
         // All of this key set up is gratuitous, but it's the only way that I was able to get sshd to start up.
@@ -150,7 +150,7 @@ public class TestUtilities {
         SessionController sessionController = fxmlLoader.getController();
         Parent root = fxmlLoader.getRoot();
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 1100, 600);
         stage.setX(100);
         stage.setY(100);
         stage.setScene(scene);
@@ -177,6 +177,18 @@ public class TestUtilities {
         }
     }
 
+    public static void cleanupTestFXEnvironment() {
+        try {
+            WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
+                    () -> !BusyWindow.window.isShowing());
+            WaitForAsyncUtils.waitForFxEvents();
+
+            cleanupTestEnvironment();
+        } catch (TimeoutException e) {
+            throw new ExceptionAdapter(e);
+        }
+    }
+
     public static void commonStartupOffFXThread() {
         try {
             startComplete.await();
@@ -194,7 +206,7 @@ public class TestUtilities {
 
     public static List<RevCommit> makeTestRepo(Path remote, Path local, int numFiles, int numCommits,
                                                boolean lastCommitUndone) throws GitAPIException,
-            IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
+            IOException, CancelledAuthorizationException, MissingRepoException {
         Git.init().setDirectory(remote.toFile()).setBare(true).call();
         Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
 

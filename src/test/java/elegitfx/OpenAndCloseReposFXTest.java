@@ -3,6 +3,7 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
@@ -76,7 +77,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         console.info("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 
@@ -87,7 +88,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         try {
             logPath = Files.createTempDirectory("elegitLogs");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         logPath.toFile().deleteOnExit();
         System.setProperty("logFolder", logPath.toString());
@@ -176,7 +177,6 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
                                       () -> dropdown.getValue().toString().equals("repo2"));
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
-
             clickOn(dropdown);
 
             // The below awful hack is very likely related to this bug:
@@ -192,12 +192,10 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
             WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
 
-            // We were having timeout issues which is why the countDownLatch is needed. Makes the test SUPER slow
-            WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo1"));
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
-
             clickOn(dropdown);
 
             // See comment above regarding bug #539.
@@ -205,7 +203,6 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
                 if (!dropdown.isShowing())
                     clickOn(dropdown);
             });
-
             clickOn("repo2");
             WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());

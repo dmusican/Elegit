@@ -47,7 +47,7 @@ public class RepositoryMonitor3FXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 

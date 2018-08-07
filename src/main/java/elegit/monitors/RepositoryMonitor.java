@@ -94,6 +94,12 @@ public class RepositoryMonitor{
         remoteTimer.dispose();
 
 
+        // This observable, when disposed, kills IO threads that may be remote git operations in progress. This is
+        // not a problem for Elegit, as it merely means that the remote operation (such as a git pull) is not
+        // completed and abandoned, but jgit insists on displaying a stack trace showing an IOException with a "pipe
+        // error" message attached to it. We're unable to catch that exception since it isn't thrown, merely
+        // printed as a stack trace. We should find a better way to fix that, but for now, this Observable will
+        // someitimes result in IOExceptions being displayed (not thrown) when it is disposed.
         remoteTimer = Observable
                 .interval(0, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .doOnNext(i -> {

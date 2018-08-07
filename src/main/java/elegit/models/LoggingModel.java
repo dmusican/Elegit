@@ -1,6 +1,7 @@
 package elegit.models;
 
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import javafx.beans.property.*;
 import org.apache.http.HttpEntity;
 import net.jcip.annotations.GuardedBy;
@@ -45,10 +46,11 @@ public class LoggingModel {
             String lastUUID = getLastUUID();
             setLastUUID(submitData(lastUUID));
         } catch (BackingStoreException | ClassNotFoundException | IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         } catch (Exception e) {
             try { setLastUUID(""); }
             catch (Exception f) { // This shouldn't happen
+                throw new ExceptionAdapter(f);
             }
         }
     }
@@ -118,6 +120,11 @@ public class LoggingModel {
     // Since this deletes a local file, which has a fixed name, this is synchronized to ensure
     // it doesn't get run more than once simultaneously
     private synchronized static String submitData(String uuid) {
+        // If logging is not enabled, do not upload anything, even if the log file has something in it
+        if (!loggingStatus.get()) {
+            return null;
+        }
+
         logger.info("Submit data called");
         String logPath = Paths.get("logs").toString();
 
@@ -144,7 +151,7 @@ public class LoggingModel {
             try {
                 logFile = Files.copy(logFile.toPath(), logFile.toPath().resolveSibling(uuid+".log")).toFile();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new ExceptionAdapter(e);
             }
 
             logger.info("Attempting to upload log: {}",logFile.getName());

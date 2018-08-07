@@ -7,6 +7,7 @@ import elegit.Main;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.RepoHelper;
+import elegit.models.ThreadsafeGitManager;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import io.reactivex.Single;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
@@ -49,7 +50,9 @@ import java.util.Optional;
 // but only because everything here runs on the FX thread.
 public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
-    private static String prevRemoteURL, prevDestinationPath, prevRepoName;
+    private static String prevRemoteURL, prevDestinationPath, prevRepoName, remoteURL;
+    private static Path destinationPath;
+    private static RepoHelperBuilder.AuthDialogResponse response;
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -75,8 +78,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         Optional<Pair<String, String>> result = dialog.showAndWait();
         if (result.isPresent()) {
             // Unpack the destination-remote Pair created above:
-            Path destinationPath = Paths.get(result.get().getKey());
-            String remoteURL = result.get().getValue();
+            destinationPath = Paths.get(result.get().getKey());
+            remoteURL = result.get().getValue();
             String additionalPrivateKey = null;
             String knownHostsLocation = null;
 
@@ -87,7 +90,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                 knownHostsLocation = getFileByTypingPath("Enter known hosts location:").toString();
             }
 
-            RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            response = RepoHelperBuilder.getAuthCredentialFromDialog();
 
             return cloneRepositoryWithChecksWhenSubscribed
                     (
@@ -318,5 +321,16 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                                                                    additionalPrivateKey,
                                                                    knownHostsLocation));
     }
+
+    @Override
+    public String getCommandLineText(){
+        if (response.protocol == AuthMethod.SSH) {
+            return "git clone ssh://"+remoteURL + " " + destinationPath;
+        }
+        else {
+            return "git clone " + remoteURL + " " + destinationPath;
+        }
+    }
+
 
 }

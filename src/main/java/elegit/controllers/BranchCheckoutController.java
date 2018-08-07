@@ -46,6 +46,7 @@ public class BranchCheckoutController {
     private Stage stage;
 
     private final SessionModel sessionModel;
+    private final SessionController sessionController;
     private final RepoHelper repoHelper;
     private final BranchModel branchModel;
     private final CommitTreeModel localCommitTreeModel;
@@ -55,6 +56,7 @@ public class BranchCheckoutController {
 
     public BranchCheckoutController() {
         sessionModel = SessionModel.getSessionModel();
+        sessionController = SessionController.getSessionController();
         repoHelper = sessionModel.getCurrentRepoHelper();
         branchModel = repoHelper.getBranchModel();
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
@@ -160,6 +162,7 @@ public class BranchCheckoutController {
     public void trackSelectedBranchLocally() throws GitAPIException, IOException {
         logger.info("Track remote branch locally button clicked");
         RemoteBranchHelper selectedRemoteBranch = this.remoteListView.getSelectionModel().getSelectedItem();
+        sessionController.updateCommandText("git checkout --track "+selectedRemoteBranch.getRefName());
         try {
             if (selectedRemoteBranch != null) {
                 LocalBranchHelper tracker = this.branchModel.trackRemoteBranch(selectedRemoteBranch);
@@ -181,6 +184,7 @@ public class BranchCheckoutController {
     private boolean checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
         if(selectedBranch == null) return false;
         try {
+            sessionController.updateCommandText("git checkout "+selectedBranch.getRefName());
             selectedBranch.checkoutBranch();
             CommitTreeController.focusCommitInGraph(selectedBranch.getCommit());
             CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
@@ -189,7 +193,8 @@ public class BranchCheckoutController {
             showJGitInternalError(e);
         } catch (CheckoutConflictException e){
             showCheckoutConflictsNotification(e.getConflictingPaths());
-        } catch (GitAPIException | IOException e) {
+        } catch (GitAPIException e) {
+            e.printStackTrace();
             showGenericErrorNotification();
         }
         return false;

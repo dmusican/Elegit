@@ -1,12 +1,15 @@
 package elegit;
 
+import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.ClonedRepoHelperBuilder;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import sharedrules.TestUtilities;
+import sharedrules.TestingLogPathRule;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +22,9 @@ import static org.junit.Assert.*;
  * Created by dmusican on 2/13/16.
  */
 public class ClonedRepoHelperBuilderTest {
+
+    @ClassRule
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
     Path logPath;
 
@@ -40,7 +46,7 @@ public class ClonedRepoHelperBuilderTest {
         try {
             this.logPath = Files.createTempDirectory("elegitLogs");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         this.logPath.toFile().deleteOnExit();
         System.setProperty("logFolder", logPath.toString());
@@ -53,7 +59,7 @@ public class ClonedRepoHelperBuilderTest {
             file.delete();
         }
     }
-
+    //test doesn't test anything, always passes
     @Test
     public void testGetPrevRepoName() throws Exception {
         assertTrue(4 == 2+2);

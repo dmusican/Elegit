@@ -7,7 +7,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.PasswordField;
 import javafx.scene.layout.GridPane;
 import net.jcip.annotations.ThreadSafe;
-import org.eclipse.jgit.api.errors.TransportException;
 
 import java.util.Optional;
 

@@ -89,7 +89,7 @@ public class CommitAndPushFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         console.info("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0, Main.getAssertionCount());
     }
 
@@ -118,7 +118,6 @@ public class CommitAndPushFXTest extends ApplicationTest {
         WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
                                   () -> !BusyWindow.window.isShowing());
         SessionController.gitStatusCompletedOnce.await();
-
         clickOn("#mainCommitButton");
 
         WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
@@ -154,6 +153,8 @@ public class CommitAndPushFXTest extends ApplicationTest {
 
         // Wait for at least one round of RepositoryMonitor to follow up
         sleep(Math.max(RepositoryMonitor.LOCAL_CHECK_INTERVAL, RepositoryMonitor.REMOTE_CHECK_INTERVAL));
+
+        RepositoryMonitor.pause();
 
     }
 

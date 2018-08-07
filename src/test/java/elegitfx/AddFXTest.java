@@ -64,15 +64,17 @@ public class AddFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 
     @Test
-    // This test will spit some errors about not connecting to a remore, but that's correct.
+    // This test will spit some errors about not connecting to a remote, but that's correct.
     // In order to test add, a remote is not necessary.
     public void test() throws Exception {
         TestUtilities.commonStartupOffFXThread();
+
+        console.info("Notifications about missing remote are correct. No remote is necessary for testing add.");
 
         Path local = testingRemoteAndLocalRepos.getLocalFull();
         Git.init().setDirectory(local.toFile()).setBare(false).call();
@@ -81,6 +83,7 @@ public class AddFXTest extends ApplicationTest {
 
         Path fileLocation = local.resolve("README.md");
 
+        console.info("1");
         FileWriter fw = new FileWriter(fileLocation.toString(), true);
         fw.write("start");
         fw.close();
@@ -88,6 +91,7 @@ public class AddFXTest extends ApplicationTest {
         helper.commit("Appended to file");
 
 
+        console.info("2");
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
         RepositoryMonitor.unpause();
 
@@ -116,19 +120,5 @@ public class AddFXTest extends ApplicationTest {
         console.info("When add seems to be done");
 
     }
-
-    // Helper method to avoid annoying traces from logger
-    private void initializeLogger() {
-        // Create a temp directory for the files to be placed in
-        Path logPath = null;
-        try {
-            logPath = Files.createTempDirectory("elegitLogs");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        logPath.toFile().deleteOnExit();
-        System.setProperty("logFolder", logPath.toString());
-    }
-
 
 }

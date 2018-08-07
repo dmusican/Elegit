@@ -19,7 +19,6 @@ import elegit.exceptions.NoRepoSelectedException;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
@@ -70,6 +69,7 @@ public abstract class RepoHelperBuilder {
 
     private final String defaultFilePickerStartFolder = System.getProperty("user.home");
     private Path repoPath;
+    private static AuthMethod protocolEnum;
 
     public RepoHelperBuilder() {
         repoPath = null;
@@ -236,7 +236,7 @@ public abstract class RepoHelperBuilder {
         // If the username hasn't been set yet, then update the username.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
-                AuthMethod protocolEnum = AuthMethod.getEnumFromString(protocol.getValue());
+                protocolEnum = AuthMethod.getEnumFromString(protocol.getValue());
                 return new AuthDialogResponse(protocolEnum, username.getText(), password.getText(),
                                               remember.isSelected());
             }
@@ -266,4 +266,7 @@ public abstract class RepoHelperBuilder {
     }
 
     public abstract Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed();
+
+    public abstract String getCommandLineText();
+
 }

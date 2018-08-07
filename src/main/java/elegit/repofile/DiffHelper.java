@@ -1,6 +1,7 @@
 package elegit.repofile;
 
 import elegit.models.RepoHelper;
+import elegit.models.ThreadsafeGitManager;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
@@ -25,6 +26,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  *
@@ -50,33 +52,34 @@ public class DiffHelper {
     private final Repository repo;
     private final String pathFilter;
 
-    public DiffHelper(Path relativeFilePath, RepoHelper repo) throws IOException {
+    private final AtomicReference<ThreadsafeGitManager> threadsafeGitManager;
+
+    public DiffHelper(Path relativeFilePath, RepoHelper repo) {
         this.repo = repo.getRepo();
+        this.threadsafeGitManager = repo.getThreadsafeGitManager();
         this.pathFilter = relativeFilePath.toString();
     }
 
-    private String getDiffString() throws GitAPIException, IOException {
-        ObjectId head = this.repo.resolve("HEAD");
+    private String getDiffString() throws IOException {
+        ObjectId head = threadsafeGitManager.get().getHeadId();
         if(head == null) return "";
 
         // The following code is largely written by Tk421 on StackOverflow
         //      (http://stackoverflow.com/q/23486483)
         // Thanks! NOTE: comments are mine.
         ByteArrayOutputStream diffOutputStream = new ByteArrayOutputStream();
-        DiffFormatter formatter = new DiffFormatter(diffOutputStream);
-        formatter.setRepository(this.repo);
-        formatter.setPathFilter(PathFilter.create(this.pathFilter.replaceAll("\\\\","/")));
+
+        PathFilter pathFilter = PathFilter.create(this.pathFilter.replaceAll("\\\\","/"));
 
         AbstractTreeIterator commitTreeIterator = prepareTreeParser(this.repo, head.getName());
         FileTreeIterator workTreeIterator = new FileTreeIterator(this.repo);
 
-        // Scan gets difference between the two iterators.
-        formatter.format(commitTreeIterator, workTreeIterator);
+        threadsafeGitManager.get().getDiff(diffOutputStream, pathFilter, commitTreeIterator, workTreeIterator);
 
         return diffOutputStream.toString();
     }
 
-    private List<Text> getColoredDiffList() throws GitAPIException, IOException {
+    private List<Text> getColoredDiffList() throws IOException {
         String diffText = this.getDiffString();
 
         ArrayList<Text> coloredDiffList = new ArrayList<>();
@@ -102,7 +105,7 @@ public class DiffHelper {
         return Collections.unmodifiableList(coloredDiffList);
     }
 
-    public ScrollPane getDiffScrollPane() throws GitAPIException, IOException {
+    public ScrollPane getDiffScrollPane() throws IOException {
         ScrollPane scrollPane = new ScrollPane();
 
         VBox verticalListOfColoredDiffs = new VBox();
@@ -121,19 +124,7 @@ public class DiffHelper {
         return scrollPane;
     }
 
-    private static AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException {
-        // from the commit we can build the tree which allows us to construct the TreeParser
-        try (RevWalk walk = new RevWalk(repository)){
-            RevCommit commit = walk.parseCommit(ObjectId.fromString(objectId));
-            RevTree tree = walk.parseTree(commit.getTree().getId());
-
-            CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
-            try (ObjectReader oldReader = repository.newObjectReader()){
-                oldTreeParser.reset(oldReader, tree.getId());
-            }
-
-            walk.dispose();
-            return oldTreeParser;
-        }
+    private AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException {
+        return threadsafeGitManager.get().prepareTreeParser(repository, objectId);
     }
 }

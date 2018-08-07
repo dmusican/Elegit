@@ -3,6 +3,7 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
+import elegit.monitors.RepositoryMonitor;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
@@ -81,7 +82,7 @@ public class ResetFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         console.info("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0, Main.getAssertionCount());
     }
 
@@ -130,6 +131,8 @@ public class ResetFXTest extends ApplicationTest {
 
 
         assertEquals(0, Main.getAssertionCount());
+
+        RepositoryMonitor.pause();
     }
 
 

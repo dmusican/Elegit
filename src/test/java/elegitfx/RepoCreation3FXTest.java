@@ -7,6 +7,7 @@ import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoCommitsToPushException;
 import elegit.exceptions.PushToAheadRemoteError;
 import elegit.models.*;
+import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
 import javafx.stage.Stage;
@@ -86,7 +87,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
     @After
     public void tearDown() {
         console.info("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0, Main.getAssertionCount());
     }
 
@@ -119,9 +120,9 @@ public class RepoCreation3FXTest extends ApplicationTest {
         interact(() -> sessionController.handleLoadExistingRepoOption(local1));
 
         // Wait for cell to appear; will time out of it doesn't
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
                                   () -> lookup(Matchers.hasToString(firstCommit1.getName())).query() != null);
-
+        sleep(100);
         Set<Cell> cells1 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
         console.info("Commits added 1");
         cells1.stream().forEach(console::info);
@@ -131,7 +132,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
 
 
         // Wait for cell to appear; will time out of it doesn't
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
                                   () -> lookup(Matchers.hasToString(firstCommit2.getName())).query() != null);
 
 
@@ -141,6 +142,8 @@ public class RepoCreation3FXTest extends ApplicationTest {
         console.info("Commits added 2");
         cells2.stream().forEach(logger::info);
         assertEquals(6,cells2.size());
+
+        RepositoryMonitor.pause();
     }
 
     private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
