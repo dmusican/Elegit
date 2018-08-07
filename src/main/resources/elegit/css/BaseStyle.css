@@ -142,40 +142,6 @@
     -fx-background-insets: 0;
 }
 
-.scroll-bar:horizontal, .scroll-bar:vertical{
-    -fx-background-color: transparent;
-    -fx-pref-width: 14;
-    -fx-pref-height: 14;
-    -fx-padding: 2;
-}
-
-.corner {
-    -fx-background-color: transparent;
-}
-
-.increment-button, .decrement-button {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-.increment-arrow, .decrement-arrow {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-.scroll-bar:horizontal .track,
-.scroll-bar:vertical .track{
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-background-radius: 0em;
-}
-
-.scroll-bar:horizontal .thumb,
-.scroll-bar:vertical .thumb {
-    -fx-background-color: gray;
-    -fx-background-radius: 5em;
-}
-
 #command {
     -fx-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
     -fx-font-size: 19px;
@@ -415,4 +381,109 @@
     -fx-cell-color-highlight2: radial-gradient(center 50% 50%, radius 75%, #16b285, #0a8551);
     -fx-cell-color-select: radial-gradient(center 50% 50%, radius 75%, #ff6e79, #e62613);
     -fx-cell-color-emphasize: radial-gradient(center 50% 50%, radius 75%, #ff6e79, #e62613);
+}
+
+.tooltip {
+    -fx-font-size: 12px;
+}
+
+.scroll-bar:horizontal, .scroll-bar:vertical{
+    -fx-background-color: transparent;
+    -fx-pref-width: 14;
+    -fx-pref-height: 14;
+    -fx-padding: 2;
+}
+
+.increment-button, .decrement-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.increment-arrow, .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.scroll-bar:horizontal .track,
+.scroll-bar:vertical .track{
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0em;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.scroll-bar:horizontal .thumb,
+.scroll-bar:vertical .thumb {
+    -fx-background-color: gray;
+    -fx-background-radius: 5em;
+}
+
+.corner {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* Conflict Management buttons */
+#checkIcon {
+    -fx-fill: #26bc6f;
+    -fx-stroke: #22874a;
+}
+
+#xIcon {
+    -fx-fill: #e24b49;
+    -fx-stroke: #a63d3b;
+}
+
+#undoIcon {
+    -fx-fill: #a962e2;
+    -fx-stroke: #8a56bb;
+}
+
+/* Conflict Management documents */
+.virtualized-scroll-pane {
+    -fx-background-color: #f1f1f1;
+    -fx-border-color: #afafaf;
+    -fx-border-width: 1;
+}
+
+.document {
+    -fx-font-family: Courier;
+    -fx-font-size: 13px;
+    -fx-border-width: 1;
+    -fx-border-color: #afafaf;
+}
+
+.lineno {
+    -fx-background-color: #f1f1f1;
+    -fx-border-width: 0 1 0 0;
+    -fx-border-color: #afafaf;
+}
+
+.conflict-pointer {
+    -fx-stroke: red;
+    -fx-fill: red;
+}
+
+.document .conflict {
+    -rtfx-background-color: rgba(255, 0, 0, 0.34);
+    -fx-fill: #5b0000;
+}
+
+.document .changed-conflict {
+    -rtfx-background-color: rgba(0, 255, 25, 0.34);
+    -fx-fill: #00750b;
+}
+
+.document .handled-conflict {
+    -rtfx-background-color: rgba(80, 13, 255, 0.34);
+    -fx-fill: #3f0b7e;
+}
+
+.conflictManagementSeparator {
+    -fx-background-color: transparent;
 }

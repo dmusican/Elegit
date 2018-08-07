@@ -1,5 +1,6 @@
 package sharedrules;
 
+import elegit.models.SessionModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -29,6 +30,7 @@ public class TestingRemoteAndLocalReposRule extends ExternalResource {
 
     @Override
     protected void before() throws Exception {
+
         directoryPath = Files.createTempDirectory("unitTestRepos");
         if (deleteTempFiles) {
             directoryPath.toFile().deleteOnExit();

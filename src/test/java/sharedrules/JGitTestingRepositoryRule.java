@@ -50,6 +50,7 @@
 package sharedrules;
 
 import elegit.TestRepositoryResolver;
+import elegit.models.SessionModel;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jgit.http.server.GitServlet;

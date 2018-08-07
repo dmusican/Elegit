@@ -322,4 +322,6 @@ public class MenuController {
             return "UNKNOWN";
         }
     }
+
+    public synchronized void handleOpenConflictManagementTool() { sessionController.handleOpenConflictManagementTool(); }
 }

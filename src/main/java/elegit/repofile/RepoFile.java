@@ -54,6 +54,7 @@ public class RepoFile implements Comparable<RepoFile> {
     private final Button diffButton;
     private final PopOver diffPopover;
     private final ContextMenu contextMenu;
+    private Object value;
 
     protected static final Logger logger = LogManager.getLogger();
 
@@ -75,6 +76,7 @@ public class RepoFile implements Comparable<RepoFile> {
         }
 
         this.contextMenu = new ContextMenu();
+        this.contextMenu.setId("contextId");
 
         MenuItem addToIgnoreItem = new MenuItem("Add to .gitignore...");
         addToIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(this.repo, this.filePath));
@@ -220,4 +222,5 @@ public class RepoFile implements Comparable<RepoFile> {
         Main.assertFxThread();
         return this.toString().compareToIgnoreCase(other.toString());
     }
+
 }

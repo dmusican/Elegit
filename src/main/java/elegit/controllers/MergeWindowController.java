@@ -1,12 +1,17 @@
 package elegit.controllers;
 
 import elegit.*;
+import elegit.exceptions.ExceptionAdapter;
+import elegit.gui.WorkingTreePanelView;
 import elegit.models.BranchModel;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.ConflictingFileWatcher;
+import elegit.repofile.ConflictingRepoFile;
+import elegit.repofile.RepoFile;
 import elegit.treefx.CellLabel;
+import elegit.models.BranchHelper;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -25,8 +30,14 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
+import org.omg.CORBA.Object;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Set;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  * Controller for the merge window
@@ -50,6 +61,8 @@ public class MergeWindowController {
 
     private static final int REMOTE_PANE=0;
     private static final int LOCAL_PANE=1;
+
+    private static LocalBranchHelper selectedBranch;
 
     private Stage stage;
 
@@ -207,13 +220,18 @@ public class MergeWindowController {
      */
     private synchronized void mergeFromFetch() {
         Main.assertFxThread();
+
         // Do the merge, and close the window if successful
         sessionController.mergeFromFetchCreateChain(notificationPaneController)
                 .subscribe(results -> {
                     boolean success = true;
                     for (SessionController.Result result : results) {
+                        if(result.status == SessionController.ResultStatus.CONFLICTING){
+                            this.showConflictsNotification();
+                        }
                         if (result.status == SessionController.ResultStatus.MERGE_FAILED ||
-                                result.status == SessionController.ResultStatus.EXCEPTION)
+                                result.status == SessionController.ResultStatus.EXCEPTION ||
+                                result.status == SessionController.ResultStatus.CONFLICTING)
                             success = false;
                     }
                     if (success) {
@@ -231,8 +249,8 @@ public class MergeWindowController {
     private void localBranchMerge() throws GitAPIException, IOException {
         logger.info("Merging selected branch with current");
         // Get the branch to merge with
-        LocalBranchHelper selectedBranch = this.branchDropdownSelector.getSelectionModel().getSelectedItem();
-
+        selectedBranch = this.branchDropdownSelector.getSelectionModel().getSelectedItem();
+        SessionModel sessionModel = SessionModel.getSessionModel();
         // Get the merge result from the branch merge
         MergeResult mergeResult =
                 SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().mergeWithBranch(selectedBranch);
@@ -241,14 +259,14 @@ public class MergeWindowController {
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
             // TODO: Call gitStatus once I've got it better threaded
-            //this.sessionController.gitStatus();
-            ConflictingFileWatcher.watchConflictingFiles(SessionModel.getSessionModel().getCurrentRepoHelper());
-
+            this.sessionController.gitStatus();
+            RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
+            ConflictingFileWatcher.watchConflictingFiles(repoHelper);
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
             this.showUpToDateNotification();
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAILED)) {
-            if (!SessionModel.getSessionModel().modifiedAndStagedFilesAreSame()) {
+            if (!sessionModel.modifiedAndStagedFilesAreSame()) {
                 this.showChangedFilesNotification();
             } else {
                 this.showFailedMergeNotification();
@@ -272,6 +290,12 @@ public class MergeWindowController {
         //sessionController.gitStatus();
     }
 
+    public BranchHelper getCurrentBranch(){
+        return SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+    }
+    public BranchHelper getSelectedBranch(){
+        return selectedBranch;
+    }
     /**
      * Setter method for sessionController, needed for merge operations
      * @param sessionController the sessionController that made this window

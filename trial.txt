@@ -1,0 +1,8 @@
+<<===<<
+elegit.models.BranchModel@260adbe
+master
+>>===>>
+<<===<<
+elegit.models.BranchModel@6ac76f99
+master
+>>===>>

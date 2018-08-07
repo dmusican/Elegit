@@ -3,7 +3,6 @@ package elegit.gui;
 import elegit.Main;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -20,8 +19,6 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 
 import java.util.*;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class that initializes a given pop up window. Essentially both a view and controller for pop up windows.
@@ -34,55 +31,33 @@ public class PopUpWindows {
 
     static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
+    private static boolean isAddingConflictingFileAlertShowing = false;
+    private static boolean isAddingConflictingThenModifiedFileAlertShowing = false;
+    private static boolean isConflictingHelpAlertShowing = false;
+    private static String resultType;
 
-    /**
-     * Informs the user that they are about to commit a conflicting file
-     *
-     * @return String user's response to the dialog
-     */
-    public static String showCommittingConflictingFileAlert() {
-        String resultType;
-
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-
-        ButtonType resolveButton = new ButtonType("Open Editor");
-        ButtonType addButton = new ButtonType("Add");
-        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType helpButton = new ButtonType("Help", ButtonBar.ButtonData.HELP);
-
-        alert.getButtonTypes().setAll(helpButton, resolveButton, addButton, cancelButton);
-
-        alert.setResizable(true);
-        alert.getDialogPane().setPrefSize(450, 200);
-
-        alert.setTitle("Warning: conflicting file");
-        alert.setHeaderText("You're adding a conflicting file");
-        alert.setContentText("You can open an editor to resolve the conflicts, or add the changes anyways. What do you want to do?");
-
-        ImageView img = new ImageView(new javafx.scene.image.Image("/elegit/images/conflict.png"));
-        img.setFitHeight(40);
-        img.setFitWidth(80);
-        img.setPreserveRatio(true);
-        alert.setGraphic(img);
-
-        Optional<ButtonType> result = alert.showAndWait();
-
-        if (result.orElse(null) == resolveButton) {
-            logger.info("Chose to resolve conflicts");
-            resultType = "resolve";
-        } else if (result.orElse(null) == addButton) {
-            logger.info("Chose to add file");
-            resultType = "add";
-        } else if (result.orElse(null) == helpButton) {
-            logger.info("Chose to get help");
-            resultType = "help";
-        } else {
-            // User cancelled the dialog
-            logger.info("Cancelled dialog");
-            resultType = "cancel";
-        }
-
+    public static boolean getAddingConflictingThenModifiedFileAlertShowing(){
+        return isAddingConflictingThenModifiedFileAlertShowing;
+    }
+    public static boolean getComittingConflictingFileAlertShowing(){
+        return isAddingConflictingFileAlertShowing;
+    }
+    public static void setAddingConflictingThenModifiedFileAlertShowing(boolean status){
+        isAddingConflictingThenModifiedFileAlertShowing = status;
+    }
+    public static void setComittingConflictingFileAlertShowing(boolean status){
+        isAddingConflictingFileAlertShowing = status;
+    }
+    public static String getResultType(){
         return resultType;
+    }
+    public static void setConflictingAlertsShowing(boolean status){
+        setComittingConflictingFileAlertShowing(status);
+        setAddingConflictingThenModifiedFileAlertShowing(status);
+        isConflictingHelpAlertShowing = status;
+    }
+    public static boolean getConflictingHelpAlertShowing(){
+        return isConflictingHelpAlertShowing;
     }
 
     /**
@@ -109,14 +84,98 @@ public class PopUpWindows {
     }
 
     /**
+     * Informs the user that they are about to commit a conflicting file
+     *
+     * @return String user's response to the dialog
+     */
+    public static String showAddingConflictingFileAlert() {
+        isAddingConflictingFileAlertShowing = true;
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+
+        ButtonType resolveToolButton = new ButtonType("Open Tool", ButtonBar.ButtonData.YES);
+        ButtonType resolveEditorButton = new ButtonType("Open Editor", ButtonBar.ButtonData.HELP);
+        ButtonType addButton = new ButtonType("Add");
+        ButtonType cancelButton = new ButtonType("Cancel");
+        ButtonType helpButton = new ButtonType("Editor Help", ButtonBar.ButtonData.HELP);
+
+        alert.getButtonTypes().setAll(helpButton, resolveEditorButton, resolveToolButton, addButton, cancelButton);
+
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefSize(575, 200);
+
+        alert.setTitle("Warning: conflicting file");
+        alert.setHeaderText("You're adding a conflicting file");
+        alert.setContentText("You can open Elegit's conflict management tool, open a basic text editor to resolve the conflicts "
+                + "manually, or add the changes anyways (this option will contain \"<<<<<<<\", \"=======\", and " +
+                "\">>>>>>>\" in the resulting file). What do you want to do?");
+
+        ImageView img = new ImageView(new javafx.scene.image.Image("/elegit/images/conflict.png"));
+        img.setFitHeight(40);
+        img.setFitWidth(80);
+        img.setPreserveRatio(true);
+        alert.setGraphic(img);
+
+        Optional<ButtonType> result = alert.showAndWait();
+
+        if (result.orElse(null) == resolveEditorButton) {
+            logger.info("Chose to resolve conflicts via the editor");
+            resultType = "editor";
+        } else if (result.orElse(null) == resolveToolButton) {
+            logger.info("Chose to resolve conflicts via the tool");
+            resultType = "tool";
+        } else if (result.orElse(null) == addButton) {
+            logger.info("Chose to add file");
+            resultType = "add";
+        } else if (result.orElse(null) == helpButton) {
+            logger.info("Chose to get help with the editor option");
+            resultType = "help";
+        } else {
+            // User cancelled the dialog
+            logger.info("Cancelled dialog");
+            resultType = "cancel";
+        }
+        return resultType;
+    }
+
+    /**
+     * Informs the user that they are about to commit a conflicting file
+     *
+     * @return String user's response to the dialog
+     */
+    public static void showCommittingWithUnmergedFilesAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+
+        ButtonType okayButton = new ButtonType("Okay", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(okayButton);
+
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefSize(350, 150);
+
+        alert.setTitle("Warning: Unmerged Files");
+        alert.setHeaderText("You still have conflicting files in your Working Tree!");
+        alert.setContentText("You should resolve these conflicts and add the files.");
+
+        ImageView img = new ImageView(new javafx.scene.image.Image("/elegit/images/conflict.png"));
+        img.setFitHeight(40);
+        img.setFitWidth(80);
+        img.setPreserveRatio(true);
+        alert.setGraphic(img);
+
+        alert.showAndWait();
+    }
+
+    /**
      * Shows a window with instructions on how to fix a conflict
      */
     public static void showConflictingHelpAlert() {
+        logger.info("Help window for handling conflicts with an editor opened.");
+        isConflictingHelpAlertShowing = true;
         Alert window = new Alert(Alert.AlertType.INFORMATION);
         window.setResizable(true);
-        window.getDialogPane().setPrefSize(550, 350);
-        window.setTitle("How to fix conflicting files");
-        window.setHeaderText("How to fix conflicting files");
+        window.getDialogPane().setPrefSize(550, 375);
+        window.setTitle("How to fix conflicting files with an editor");
+        window.setHeaderText("How to fix conflicting files with an editor");
         window.setContentText("1. First, open up the file that is marked as conflicting.\n" +
                 "2. In the file, you should see something like this:\n\n" +
                 "\t<<<<<< <branch_name>\n" +
@@ -129,6 +188,82 @@ public class PopUpWindows {
                 "4. Remove the markers (<<<<<<<, =======, >>>>>>>) git put in the file\n" +
                 "5. Done! You can now safely add and commit the file");
         window.showAndWait();
+    }
+
+    /**
+     * Informs the user that they are adding a previously conflicting file
+     *
+     * @return String result from user input
+     */
+    public static String showAddingConflictingThenModifiedFileAlert() {
+        isAddingConflictingThenModifiedFileAlertShowing = true;
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+
+        ButtonType commitButton = new ButtonType("Add");
+        ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(commitButton, buttonTypeCancel);
+
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefSize(300, 200);
+
+        alert.setTitle("Adding previously conflicting file");
+        alert.setHeaderText("You are adding a conflicting file that was recently modified to the commit");
+        alert.setContentText("If the file is what you want it to be, you should commit. Otherwise, modify the file accordingly.");
+
+        Optional<ButtonType> result = alert.showAndWait();
+
+        if (result.orElse(null) == commitButton) {
+            logger.info("Chose to add");
+            resultType = "add";
+        } else {
+            // User cancelled the dialog
+            logger.info("Cancelled dialog");
+            resultType = "cancel";
+        }
+
+        return resultType;
+    }
+
+    /**
+     * Informs the user that there are conflicting files so they can't checkout a different branch
+     *
+     * @param conflictingPaths conflicting files
+     */
+    public static void showCheckoutConflictsAlert(List<String> conflictingPaths) {
+        logger.warn("Checkout conflicts warning");
+        String conflictList = "";
+        for (String pathName : conflictingPaths) {
+            conflictList += "\n" + pathName;
+        }
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Conflicting files");
+        alert.setHeaderText("Can't checkout that branch");
+        alert.setContentText("You can't switch to that branch because of the following conflicting files between that branch and your current branch: "
+                + conflictList);
+
+        alert.showAndWait();
+    }
+
+    /**
+     * Informs the user that there were conflicts
+     *
+     * @param conflictingPaths conflicting files
+     */
+    public static void showMergeConflictsAlert(Set<String> conflictingPaths) {
+        logger.warn("Merge conflicts warning");
+        String conflictList = "";
+        for (String pathName : conflictingPaths) {
+            conflictList += "\n" + pathName;
+        }
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Conflicting files");
+        alert.setHeaderText("Can't complete merge");
+        alert.setContentText("There were conflicts in the following files: "
+                + conflictList);
+
+        alert.showAndWait();
     }
 
     /**
@@ -188,42 +323,6 @@ public class PopUpWindows {
     }
 
     /**
-     * Informs the user that they are adding a previously conflicting file
-     *
-     * @return String result from user input
-     */
-    public static String showAddingingConflictingThenModifiedFileAlert() {
-        String resultType;
-
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-
-        ButtonType commitButton = new ButtonType("Add");
-        ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-        alert.getButtonTypes().setAll(commitButton, buttonTypeCancel);
-
-        alert.setResizable(true);
-        alert.getDialogPane().setPrefSize(300, 200);
-
-        alert.setTitle("Adding previously conflicting file");
-        alert.setHeaderText("You are adding a conflicting file that was recently modified to the commit");
-        alert.setContentText("If the file is what you want it to be, you should commit. Otherwise, modify the file accordingly.");
-
-        Optional<ButtonType> result = alert.showAndWait();
-
-        if (result.orElse(null) == commitButton) {
-            logger.info("Chose to add");
-            resultType = "add";
-        } else {
-            // User cancelled the dialog
-            logger.info("Cancelled dialog");
-            resultType = "cancel";
-        }
-
-        return resultType;
-    }
-
-    /**
      * Informs the user that they are tracking ignored files
      *
      * @param trackedIgnoredFiles collections of files being ignored
@@ -238,46 +337,6 @@ public class PopUpWindows {
                     "but also match an ignore pattern. If you want to ignore these files, remove them from Git.\n" + fileStrings);
             alert.showAndWait();
         }
-    }
-
-    /**
-     * Informs the user that there are conflicting files so they can't checkout a different branch
-     *
-     * @param conflictingPaths conflicting files
-     */
-    public static void showCheckoutConflictsAlert(List<String> conflictingPaths) {
-        logger.warn("Checkout conflicts warning");
-        String conflictList = "";
-        for (String pathName : conflictingPaths) {
-            conflictList += "\n" + pathName;
-        }
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Conflicting files");
-        alert.setHeaderText("Can't checkout that branch");
-        alert.setContentText("You can't switch to that branch because of the following conflicting files between that branch and your current branch: "
-                             + conflictList);
-
-        alert.showAndWait();
-    }
-
-    /**
-     * Informs the user that there were conflicts
-     *
-     * @param conflictingPaths conflicting files
-     */
-    public static void showMergeConflictsAlert(Set<String> conflictingPaths) {
-        logger.warn("Merge conflicts warning");
-        String conflictList = "";
-        for (String pathName : conflictingPaths) {
-            conflictList += "\n" + pathName;
-        }
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Conflicting files");
-        alert.setHeaderText("Can't complete merge");
-        alert.setContentText("There were conflicts in the following files: "
-                             + conflictList);
-
-        alert.showAndWait();
     }
 
     public static RemoteBranchHelper showTrackDifRemoteBranchDialog(ObservableList<RemoteBranchHelper> remoteBranches) {

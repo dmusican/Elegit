@@ -267,8 +267,19 @@ public class BranchModel {
      */
     public synchronized MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException,
             IOException {
+
         String branchToMergeFromRefPathString = branchToMergeFrom.getRefPathString();
-        return threadsafeGitManager.get().mergeWithBranch(branchToMergeFromRefPathString);
+        MergeResult mergeResult = threadsafeGitManager.get().mergeWithBranch(branchToMergeFromRefPathString);
+
+        String current = getCurrentBranch().getRefName();
+        HashMap<String, String> results = new HashMap<>();
+        results.put("mergedBranch", branchToMergeFrom.getRefName());
+        results.put("baseBranch", current);
+        results.put("baseParent", mergeResult.getMergedCommits()[0].toString());
+        results.put("mergedParent", mergeResult.getMergedCommits()[1].toString());
+        SessionModel.getSessionModel().addMergeResult(results);
+
+        return mergeResult;
     }
 
     // ************************* GETTERS AND SETTERS **************************

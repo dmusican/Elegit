@@ -3,13 +3,12 @@ package elegit.repofile;
 import elegit.Main;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
-import javafx.application.Platform;
+import elegit.treefx.CommitTreeController;
+import javafx.scene.control.MenuItem;
 import net.jcip.annotations.ThreadSafe;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A subclass of the RepoFile class that holds a reference to
@@ -34,6 +33,13 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         Main.assertFxThread();
         setTextIdTooltip("CONFLICTING\nMODIFIED","conflictingThenModifiedDiffButton",
         "This file was conflicting, but was recently modified.\nCommit if the changes are finalized.");
+        MenuItem resolveMerge = new MenuItem("Resolve conflict...");
+        resolveMerge.setId("resolveConflicts");
+        addToContextMenu(resolveMerge);
+
+        // Open conflict management tool
+        resolveMerge.setOnAction(event -> CommitTreeController.getSessionController().handleOpenConflictManagementTool(
+                this.getRepo().getLocalPath().toString(), this.getFilePath().toString()));
     }
 
     public ConflictingThenModifiedRepoFile(String filePathString, RepoHelper repo) {
@@ -43,31 +49,12 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
 
     @Override public boolean canAdd() {
         Main.assertFxThread();
-        ReentrantLock lock = new ReentrantLock();
-        Condition finishedAlert = lock.newCondition();
-
-        Platform.runLater(() -> {
-            logger.warn("Notification about conflicting the modified file");
-            lock.lock();
-            try{
-                resultType = PopUpWindows.showAddingingConflictingThenModifiedFileAlert();
-                finishedAlert.signal();
-            }finally{
-                lock.unlock();
-            }
-        });
-
-        lock.lock();
-        try{
-            finishedAlert.await();
-            if(resultType.equals("add")){
-                return true;
-            }
-        }catch(InterruptedException ignored){
-        }finally{
-            lock.unlock();
+        if(!PopUpWindows.getAddingConflictingThenModifiedFileAlertShowing()) {
+            resultType = PopUpWindows.showAddingConflictingThenModifiedFileAlert();
+        } else {
+            resultType = PopUpWindows.getResultType();
         }
-        return false;
+        return resultType.equals("add");
     }
 
     @Override public boolean canRemove() { return true; }

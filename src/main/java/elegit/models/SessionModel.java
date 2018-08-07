@@ -1,7 +1,9 @@
 package elegit.models;
 
 import elegit.Main;
+import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
+import elegit.exceptions.NoRepoLoadedException;
 import elegit.monitors.ConflictingFileWatcher;
 import elegit.repofile.*;
 import elegit.sshauthentication.ElegitUserInfoGUI;
@@ -20,6 +22,7 @@ import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
@@ -46,6 +49,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.stream.Stream;
+import java.util.HashMap;
 
 /**
  * The singleton SessionModel stores all the Repos (contained in RepoHelper objects)
@@ -64,6 +68,7 @@ public class SessionModel {
     @GuardedBy("this") private static SessionModel sessionModel;
     private static Class<?> preferencesNodeClass = SessionModel.class;
     private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
+    private static final String MERGE_RESULT = "RESULT";
 
     @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
     private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
@@ -89,6 +94,7 @@ public class SessionModel {
         this.allRepoHelpers = new ArrayList<>();
         loadRecentRepoHelpersFromStoredPathStrings();
         loadMostRecentRepoHelper();
+        loadMergeResults();
     }
 
 
@@ -103,6 +109,15 @@ public class SessionModel {
         return preferencesNodeClass;
     }
 
+    private void loadMergeResults(){
+        try {
+            if(PrefObj.getObject(Main.preferences, MERGE_RESULT)==null) {
+                PrefObj.putObject(Main.preferences, MERGE_RESULT, new HashMap<String, HashMap<String, String>>());
+            }
+        } catch (Exception e) {
+            throw new ExceptionAdapter(e);
+        }
+    }
 
     /**
      * Loads all recently loaded repositories (stored with the Java Preferences API)
@@ -332,7 +347,7 @@ public class SessionModel {
      * @return a set of conflicting filenames in the working directory.
      * @throws GitAPIException
      */
-    private Set<String> getConflictingFiles(Status status) throws GitAPIException {
+    public Set<String> getConflictingFiles(Status status) throws GitAPIException {
         if (status == null) {
             status = threadsafeGitManager.get().getStatus();
         }
@@ -527,6 +542,34 @@ public class SessionModel {
 
         Collections.sort(allFiles);
         return Collections.unmodifiableList(allFiles);
+    }
+
+    public void addMergeResult(HashMap<String, String> results){
+        try {
+            Repository repo = getCurrentRepo();
+            HashMap<String, HashMap<String, String>> mergeResults =
+                    (HashMap<String, HashMap<String, String>>) PrefObj.getObject(Main.preferences, MERGE_RESULT);
+            mergeResults.put(repo.getDirectory().toString(), results);
+            PrefObj.putObject(Main.preferences, MERGE_RESULT, mergeResults);
+        } catch (NullPointerException e){
+            //should only be thrown in non-fx testing
+            //showNoRepoLoadedNotification();
+            console.info("No current repo set");
+        } catch(IOException | BackingStoreException | ClassNotFoundException e){
+            e.printStackTrace();
+            throw new ExceptionAdapter(e);
+        }
+    }
+
+    public HashMap<String, String> getMergeResult() throws NullPointerException{
+        try {
+            HashMap<String, HashMap<String, String>> mergeResults =
+                    (HashMap<String, HashMap<String, String>>) PrefObj.getObject(Main.preferences, MERGE_RESULT);
+            return mergeResults.get(getCurrentRepo().getDirectory().toString());
+        } catch (IOException | BackingStoreException | ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new ExceptionAdapter(e);
+        }
     }
 
     /**

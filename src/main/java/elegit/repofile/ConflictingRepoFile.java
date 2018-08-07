@@ -1,8 +1,11 @@
 package elegit.repofile;
 
 import elegit.Main;
+import elegit.controllers.SessionController;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
+import elegit.models.SessionModel;
+import elegit.treefx.CommitTreeController;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import javafx.scene.control.MenuItem;
@@ -11,8 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -32,15 +34,22 @@ import java.nio.file.Paths;
 public class ConflictingRepoFile extends RepoFile {
 
     private String resultType;
+    private SessionController controller;
 
     static final Logger logger = LogManager.getLogger();
 
     public ConflictingRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
+        controller = CommitTreeController.getSessionController();
         setTextIdTooltip("CONFLICTING","conflictingDiffButton",
                 "This file caused a merge conflict.\nEdit the file to fix the conflict.");
         MenuItem resolveMerge = new MenuItem("Resolve conflict...");
+        resolveMerge.setId("resolveConflicts");
         addToContextMenu(resolveMerge);
+
+        // Open conflict management tool
+        resolveMerge.setOnAction(event -> controller.handleOpenConflictManagementTool(this.getRepo().
+                getLocalPath().toString(), this.getFilePath().toString()));
     }
 
     public ConflictingRepoFile(String filePathString, RepoHelper repo) {
@@ -50,9 +59,18 @@ public class ConflictingRepoFile extends RepoFile {
     @Override public boolean canAdd() {
         Main.assertFxThread();
         logger.warn("Notification about conflicting file");
-        resultType = PopUpWindows.showCommittingConflictingFileAlert();
+        if(!PopUpWindows.getComittingConflictingFileAlertShowing()) {
+            resultType = PopUpWindows.showAddingConflictingFileAlert();
+        } else {
+            resultType = PopUpWindows.getResultType();
+        }
         switch (resultType) {
-            case "resolve":
+            case "tool":
+                // Open conflict management tool
+                controller.handleOpenConflictManagementTool(this.getRepo().getLocalPath().toString(),
+                        this.getFilePath().toString());
+                break;
+            case "editor":
                 Desktop desktop = Desktop.getDesktop();
 
                 File workingDirectory = this.getRepo().getRepo().getWorkTree();
@@ -67,8 +85,12 @@ public class ConflictingRepoFile extends RepoFile {
             case "add":
                 return true;
             case "help":
-                PopUpWindows.showConflictingHelpAlert();
+                if(!PopUpWindows.getConflictingHelpAlertShowing()) {
+                    PopUpWindows.showConflictingHelpAlert();
+                }
                 break;
+            case "cancel":
+                return false;
         }
         return false;
     }
@@ -76,4 +98,6 @@ public class ConflictingRepoFile extends RepoFile {
     @Override public boolean canRemove() {
         return true;
     }
+
+
 }

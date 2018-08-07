@@ -51,6 +51,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
@@ -69,7 +70,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -146,6 +146,7 @@ public class SessionController {
     @FXML private MenuController menuController;
     @FXML private DropdownController dropdownController;
     @FXML private CommandLineController commandLineController;
+    @FXML private ConflictManagementToolController conflictManagementToolController;
 
     // Commit Info Box
     @FXML public CommitInfoController commitInfoController;
@@ -905,7 +906,8 @@ public class SessionController {
         if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
         if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
-        if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
+        //having this error thrown means that one staged file being selected blocks all other files from being added
+        //if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
     }
 
     /**
@@ -920,10 +922,18 @@ public class SessionController {
             try {
                 ArrayList<Path> filePathsToAdd = new ArrayList<>();
                 ArrayList<Path> filePathsToRemove = new ArrayList<>();
+                PopUpWindows.setConflictingAlertsShowing(false);
 
                 // Try to add all files, throw exception if there are ones that can't be added
                 if (workingTreePanelView.isSelectAllChecked()) {
-                    filePathsToAdd.add(Paths.get("."));
+                    //filePathsToAdd.add(Paths.get("."));
+                    for(RepoFile file : workingTreePanelView.getFilesToDisplay()){
+                        System.out.println(file);
+                        if(file.canAdd()){
+                            filePathsToAdd.add(file.getFilePath());
+                        }
+                    }
+                    PopUpWindows.setConflictingAlertsShowing(false);
                 } else {
                     for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
                         if (checkedFile.canAdd()) {
@@ -932,9 +942,11 @@ public class SessionController {
                             // JGit does not support adding missing files, instead remove them
                             filePathsToRemove.add(checkedFile.getFilePath());
                         } else {
-                            throw new UnableToAddException(checkedFile.getFilePath().toString());
+                            //putting this in means that any addable files dont get added
+                            //throw new UnableToAddException(checkedFile.getFilePath().toString());
                         }
                     }
+                    PopUpWindows.setConflictingAlertsShowing(false);
                 }
 
                 if (filePathsToAdd.size() > 0) {
@@ -1910,7 +1922,7 @@ public class SessionController {
         handleFetchButton(false, true);
     }
 
-    public enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
+    public enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED, CONFLICTING};
     public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES, RESET, REVERT};
 
     public static class Result {
@@ -1959,7 +1971,7 @@ public class SessionController {
                     results.add(new Result(ResultStatus.NOCOMMITS, ResultOperation.FETCH));
                 }
                 if (pull) {
-                    mergeOperation(helper);
+                    mergeOperationFromFetch(helper);
                 }
             } catch (Exception e) {
                 results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.FETCH, e));
@@ -2061,8 +2073,8 @@ public class SessionController {
 
             } else if (result.exception instanceof UnableToAddException) {
                 showNotification(nc, "Cannot add file notification",
-                        "Cannot add " + ((UnableToAddException) result.exception).getFilename() +
-                                ". It might already be added (staged).");
+                        "Cannot add " + ((UnableToAddException) result.exception).getFilename());
+                                //+ ". It might already be added (staged).");
 
             } else if (result.exception instanceof NoFilesSelectedToAddException) {
                 showNotification(nc, "No files selected for add warning",
@@ -2188,7 +2200,7 @@ public class SessionController {
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Merging..."))
 
                 .observeOn(Schedulers.io())
-                .map(this::mergeOperation)
+                .map(this::mergeOperationFromFetch)
 
                 .observeOn(JavaFxScheduler.platform())
 
@@ -2211,13 +2223,17 @@ public class SessionController {
         if (repoHelper.getBehindCount() < 1) throw new NoCommitsToMergeException();
     }
 
-    private List<Result> mergeOperation(RepoHelper repoHelper) {
+    private List<Result> mergeOperationFromFetch(RepoHelper repoHelper) {
         synchronized (globalLock) {
             Main.assertNotFxThread();
 
             ArrayList<Result> results = new ArrayList<>();
             try {
-                if (!repoHelper.mergeFromFetch().isSuccessful()) {
+                MergeResult.MergeStatus status = repoHelper.mergeFromFetch();
+                if (status == MergeResult.MergeStatus.CONFLICTING){
+                    results.add(new Result(ResultStatus.CONFLICTING, ResultOperation.MERGE));
+                } else if (!repoHelper.mergeFromFetch().isSuccessful()) {
+                    //reconsider whether to do this, or just show the notification in mergewindow used for locals
                     results.add(new Result(ResultStatus.MERGE_FAILED, ResultOperation.MERGE));
                 }
             } catch (Exception e) {
@@ -2333,6 +2349,36 @@ public class SessionController {
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        }
+    }
+
+    public void handleOpenConflictManagementTool(){
+        //make window to request file
+        handleOpenConflictManagementTool("", "");
+    }
+
+    /**
+     * Shows the conflict management tool
+     */
+    public void handleOpenConflictManagementTool(String filePathWithoutName, String fileName) {
+        try {
+            logger.info("Conflict Management Tool opened.");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/ConflictManagementTool.fxml"));
+            fxmlLoader.load();
+            conflictManagementToolController = fxmlLoader.getController();
+            conflictManagementToolController.setSessionController(this);
+
+            // Only set the file if the user called the tool from a specific file
+            if (!filePathWithoutName.equals("") || !fileName.equals("")) {
+                conflictManagementToolController.setFile(filePathWithoutName, fileName);
+            }
+
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
+            conflictManagementToolController.showStage(fxmlRoot);
+        } catch (IOException e) {
+            this.showGenericErrorNotification(e);
+            e.printStackTrace();
         }
     }
 
@@ -2917,6 +2963,8 @@ public class SessionController {
     public NotificationController getNotificationPaneController() {
         return notificationPaneController;
     }
+
+    public ConflictManagementToolController getConflictManagementToolController() { return conflictManagementToolController; }
 
     public static int getGenericExceptionCount() {
         return genericExceptionCount.get();

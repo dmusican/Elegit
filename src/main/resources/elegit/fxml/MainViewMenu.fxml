@@ -84,6 +84,16 @@
                 </Menu>
             </items>
         </Menu>
+        <Menu text="Tools"
+              fx:id="toolsMenu">
+            <items>
+                <Menu text="Conflict management">
+                    <MenuItem text="Open Tool"
+                              fx:id="openConflictManagementOption"
+                              onAction="#handleOpenConflictManagementTool"/>
+                </Menu>
+            </items>
+        </Menu>
         <Menu text="Preferences">
             <items>
                 <CheckMenuItem fx:id="loggingToggle" onAction="#handleLoggingToggle" text="Enable Logging"/>
