@@ -31,6 +31,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static sharedrules.TestUtilities.makeTestRepo;
 
 public class TagFXTest extends ApplicationTest {
@@ -118,6 +120,12 @@ public class TagFXTest extends ApplicationTest {
         clickOn("#tagNameField");
         write("testTag");
         clickOn("#tagButton");
+
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                                  () -> lookup("testTag").query() != null);
+
+        assertNotNull(lookup("testTag").query());
+
 
         Thread.sleep(5000);
 

@@ -1210,48 +1210,36 @@ public class SessionController {
 
             if(tagName.length() == 0) throw new NoTagNameException();
 
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    // TODO: Tagname field shouldn't be on separate thread. Check this EVERYWHERE (no FX updates on worker threads.)
-                    try {
-                        theModel.getCurrentRepoHelper().getTagModel().tag(tagName, commitInfoNameText.get());
+            try {
+                theModel.getCurrentRepoHelper().getTagModel().tag(tagName, commitInfoNameText.get());
 
-                        // Now clear the tag text and a view reload ( or `git status`) to show that something happened
-                        tagNameField.clear();
-                        gitStatus();
-                    } catch (JGitInternalException e) {
-                        showJGitInternalError(e);
-                    } catch (MissingRepoException e) {
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdownAndMenu();
-                    } catch (InvalidTagNameException e) {
-                        showInvalidTagNameNotification(tagName);
-                    }catch (TransportException e) {
-                        showTransportExceptionNotification(e);
-                    } catch(GitAPIException e){
-                        // Git error
-                        showGenericErrorNotification(e);
-                        e.printStackTrace();
-                    } catch(TagNameExistsException e){
-                        showTagExistsNotification();
-                    }
-                    catch(Exception e) {
-                        showGenericErrorNotification(e);
-                        e.printStackTrace();
-                    }
-                    tagNameField.setText("");
-                    clearSelectedCommit();
-                    selectCommit(theModel.getCurrentRepoHelper().getTagModel().getTag(tagName).getCommitId());
+                // Now clear the tag text and a view reload ( or `git status`) to show that something happened
+                tagNameField.clear();
+                gitStatus();
+            } catch (JGitInternalException e) {
+                showJGitInternalError(e);
+            } catch (MissingRepoException e) {
+                showMissingRepoNotification();
+                setButtonsDisabled(true);
+                refreshRecentReposInDropdownAndMenu();
+            } catch (InvalidTagNameException e) {
+                showInvalidTagNameNotification(tagName);
+            } catch(GitAPIException e){
+                // Git error
+                showGenericErrorNotification(e);
+                e.printStackTrace();
+            } catch(TagNameExistsException e){
+                showTagExistsNotification();
+            }
+            catch(Exception e) {
+                showGenericErrorNotification(e);
+                e.printStackTrace();
+            }
+            tagNameField.setText("");
+            clearSelectedCommit();
+            selectCommit(theModel.getCurrentRepoHelper().getTagModel().getTag(tagName).getCommitId());
 
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git tag");
-            th.start();
-        } catch(NoRepoLoadedException e){
+        }  catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
         } catch(MissingRepoException e){
