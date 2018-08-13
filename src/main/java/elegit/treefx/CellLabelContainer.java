@@ -36,6 +36,7 @@ public class CellLabelContainer extends GridPane {
      * @param y the y coordinate of the new location
      */
     public synchronized void translate(double x, double y) {
+        Main.assertFxThread();
         setTranslateX(x+BOX_SIZE+10);
         setTranslateY(y+BOX_SIZE);
     }
@@ -47,6 +48,7 @@ public class CellLabelContainer extends GridPane {
      * @param cell the cell these labels are associated with
      */
     synchronized void setLabels(List<RefHelper> refHelpers, Cell cell) {
+        Main.assertFxThread();
         // In order to be threadsafe, refHelpers must be read-only
         assert(Collections.unmodifiableList(refHelpers).getClass().isInstance(refHelpers));
 
@@ -152,7 +154,7 @@ public class CellLabelContainer extends GridPane {
      * Helper method to set the context menus on the ref labels
      * @param menuMap a map between ref helpers and context menus
      */
-    void setLabelMenus(Map<RefHelper, ContextMenu> menuMap) {
+    synchronized void setLabelMenus(Map<RefHelper, ContextMenu> menuMap) {
         Main.assertFxThread();
         for (Node m : getChildren()) {
             if (m instanceof HBox) {

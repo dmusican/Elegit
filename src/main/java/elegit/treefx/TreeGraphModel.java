@@ -46,6 +46,7 @@ public class TreeGraphModel {
     @GuardedBy("this") private final List<Cell> allCells;
     @GuardedBy("this") private final List<Cell> addedCells;
     @GuardedBy("this") private final List<Cell> removedCells;
+    @GuardedBy("this") private final List<Cell> labelChangedCells;
 
     @GuardedBy("this") private final List<Edge> addedEdges;
     @GuardedBy("this") private final List<Edge> removedEdges;
@@ -74,9 +75,12 @@ public class TreeGraphModel {
         allCells = new ArrayList<>();
         addedCells = new ArrayList<>();
         removedCells = new ArrayList<>();
+        labelChangedCells = new ArrayList<>();
 
         addedEdges = new ArrayList<>();
         removedEdges = new ArrayList<>();
+
+
 
         cellMap = new ConcurrentHashMap<>(); // <id,cell>
         cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
@@ -110,11 +114,11 @@ public class TreeGraphModel {
     }
 
     /**
-     * @return the cells added since the last update
+     * @return the cells with labels changed since the last update
      */
     // No side effects, so doesn't need to be on FX thread. Be careful if you change this!
-    public synchronized List<Cell> getAddedCells() {
-        return Collections.unmodifiableList(new ArrayList<>(addedCells));
+    public synchronized List<Cell> getLabelChangedCells() {
+        return Collections.unmodifiableList(new ArrayList<>(labelChangedCells));
     }
 
     /**
@@ -157,6 +161,14 @@ public class TreeGraphModel {
             }
         }
         return Collections.unmodifiableList(new ArrayList<>(removedEdges));
+    }
+
+    /**
+     * @return the cells modifiedxxxxx since the last update
+     */
+    // No side effects, so doesn't need to be on FX thread. Be careful if you change this!
+    public synchronized List<Cell> getAddedCells() {
+        return Collections.unmodifiableList(new ArrayList<>(addedCells));
     }
 
     /**
@@ -443,6 +455,7 @@ public class TreeGraphModel {
      */
     public synchronized void setCellLabels(String cellId, String commitDescriptor, List<RefHelper> refs){
         Main.assertFxThread();
+        System.out.println("Setting cell labelssssss for commit " + cellId);
         setCellLabels(cellMap.get(cellId), commitDescriptor, refs);
     }
 
@@ -456,6 +469,13 @@ public class TreeGraphModel {
     // synchronized for cellsWithNonDefaultShapesOrLabels
     private synchronized void setCellLabels(Cell cell, String commitDescriptor, List<RefHelper> refs){
         cell.setLabels(commitDescriptor, refs);
+        System.out.println("Setting cell labelsss....");
+        refs.stream().forEach((item) -> System.out.println(item));
+        if (!labelChangedCells.contains(cell)) {
+            labelChangedCells.add(cell);
+        }
+
+        System.out.println("The size of labelChangedCells is " + labelChangedCells.size());
 
         // In order to be threadsafe, refs must be read-only
         assert(Collections.unmodifiableList(refs).getClass().isInstance(refs));
@@ -546,6 +566,7 @@ public class TreeGraphModel {
 
         addedCells.clear();
         removedCells.clear();
+        labelChangedCells.clear();
 
         addedEdges.clear();
         removedEdges.clear();

@@ -3,6 +3,7 @@ package elegit.treefx;
 import elegit.Main;
 import elegit.models.RefHelper;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -89,6 +90,10 @@ public class Cell extends Pane {
     // All of the reference labels attached to the cell (branch name, tags, etc.)
     // TODO: Make sure refLabels is appropriately handled from a threading perspective.
     private CellLabelContainer refLabels;
+
+    // Keeps track of whether the refLabels container has been added to the scene or not. If there are no labels
+    // in a container, it should be kept out of the scene for efficiency.
+    @GuardedBy("this") private boolean refLabelsInScene;
 
     // The list of children of this cell
     @GuardedBy("this") private final List<Cell> childrenList = new ArrayList<>();
@@ -294,22 +299,17 @@ public class Cell extends Pane {
         tooltip.setText(label);
     }
 
-    // Can potentially be done off FX thread since synchronized, and might be used on something off the scene graph.
-    // It's the responsibility of the caller to verify that.
-    // synchronized for "this" reference; need to make sure properties of Cell aren't being accessed simultaneously
-    private void setRefLabels(List<RefHelper> refs){
-        this.refLabels.setLabels(refs, this);
-    }
-
     private void setCurrentRefLabels(Set<String> refs) {
         Main.assertFxThread();
         this.refLabels.setCurrentLabels(refs);
     }
 
     // Can potentially be done off FX thread since synchronized, and might be used on something off the scene graph.
+    // It's the responsibility of the caller to verify that.
+    // synchronized for "this" reference; need to make sure properties of Cell aren't being accessed simultaneously
     synchronized void setLabels(String commitDescriptor, List<RefHelper> refLabels){
         setCommitDescriptor(commitDescriptor);
-        setRefLabels(refLabels);
+        this.refLabels.setLabels(refLabels, this);
     }
 
     void setCurrentLabels(Set<String> refLabels) {
@@ -451,6 +451,14 @@ public class Cell extends Pane {
         return cellId;
     }
 
+
+    public synchronized boolean getRefLabelsInScene() {
+        return refLabelsInScene;
+    }
+
+    public synchronized void setRefLabelsInScene(boolean refLabelsInScene) {
+        this.refLabelsInScene = refLabelsInScene;
+    }
 
 
     /**
