@@ -55,10 +55,10 @@ public class Edge  {
         synchronized (source) {
             synchronized (target) {
 
-                DoubleBinding endX = source.translateXProperty().add(source.widthProperty().divide(2.0));
-                DoubleBinding endY = source.translateYProperty().add(0);//source.heightProperty());
+                DoubleBinding endX = source.translateXProperty().add(Cell.BOX_SIZE/2);
+                DoubleBinding endY = source.translateYProperty().add(0);
 
-                DoubleBinding startX = target.translateXProperty().add(target.widthProperty().divide(2.0));
+                DoubleBinding startX = target.translateXProperty().add(Cell.BOX_SIZE/2);
                 DoubleBinding startY = target.translateYProperty().add(source.heightProperty());
 
                 path = new DirectedPath(startX, startY, endX, endY, source.getCellId(), target.getCellId()); // SLOW-ISH
