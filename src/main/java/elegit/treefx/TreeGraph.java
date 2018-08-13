@@ -94,7 +94,7 @@ public class TreeGraph{
             if (n instanceof Cell) {
                 CellLabelContainer labels = ((Cell) n).getLabel();
 //                if (labels.getChildren().size() > 0) {
-                    moreToAdd.add(labels);
+//                    moreToAdd.add(labels);
 //                }
             }
         }

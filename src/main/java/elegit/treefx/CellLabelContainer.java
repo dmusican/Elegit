@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -37,7 +38,7 @@ public class CellLabelContainer extends GridPane {
      */
     public synchronized void translate(double x, double y) {
         setTranslateX(x+BOX_SIZE+10);
-        setTranslateY(y+BOX_SIZE);
+        setTranslateY(y);
     }
 
     /**
