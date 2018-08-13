@@ -93,9 +93,9 @@ public class TreeGraph{
         for (Node n: queuedToAdd) {
             if (n instanceof Cell) {
                 CellLabelContainer labels = ((Cell) n).getLabel();
-                if (labels.getChildren().size() > 0) {
+//                if (labels.getChildren().size() > 0) {
                     moreToAdd.add(labels);
-                }
+//                }
             }
         }
 
