@@ -69,8 +69,8 @@ public class TreeGraph{
      * date
      */
     public synchronized void update() {
-        System.out.println("Updating.............gg");
         Main.assertFxThread();
+
         final List<Node> queuedToAdd = new ArrayList<>();
         final List<Node> queuedToRemove = new ArrayList<>();
 
@@ -84,38 +84,20 @@ public class TreeGraph{
             queuedToAdd.add(edge.path);
         }
 
+        // merge added & removed cells with all cells
+        treeGraphModel.merge();
+
         // add components to treeGraph pane
         LinkedList<Node> moreToAdd = new LinkedList<>();
         LinkedList<Node> moreToRemove = new LinkedList<>();
-
-//        for (Node n: queuedToAdd) {
-//            if (n instanceof Cell) {
-//                CellLabelContainer labels = ((Cell) n).getLabel();
-//                if (labels.getChildren().size() > 0) {
-//                    moreToAdd.add(labels);
-//                }
-//            }
-//        }
-
-        System.out.println("Alas, the size of labelChangedCells is " + treeGraphModel.getLabelChangedCells().size());
-        for (Cell cell: treeGraphModel.getLabelChangedCells()) {
-            System.out.println("Found changed labelsssssss ");
-            CellLabelContainer labels = cell.getLabel();
-            if (labels.getChildren().size() > 0) {
-                if (!cell.getRefLabelsInScene()) {
-                    cell.setRefLabelsInScene(true);
+        for (Node n: queuedToAdd) {
+            if (n instanceof Cell) {
+                CellLabelContainer labels = ((Cell) n).getLabel();
+                if (labels.getChildren().size() > 0) {
+                    moreToAdd.add(labels);
                 }
-                moreToAdd.add(labels);
-            } else {
-                if (cell.getRefLabelsInScene()) {
-                    cell.setRefLabelsInScene(false);
-                }
-                moreToRemove.add(labels);
             }
         }
-
-        // merge added & removed cells with all cells
-        treeGraphModel.merge();
 
         // remove components from treeGraph pane
         for (Node n:queuedToRemove) {
@@ -130,10 +112,6 @@ public class TreeGraph{
                 .buffer(10)
                 //.observeOn(JavaFxScheduler.platform())
                 .subscribe(cellsToAdd -> {
-                    cellsToAdd.stream().forEach((n) -> {
-                        if (n instanceof CellLabelContainer)
-                        System.out.println("iddddddd " + ((CellLabelContainer)n).hashCode());
-                    });
                     cellLayer.getChildren().addAll(cellsToAdd);
                 });
 

@@ -1215,7 +1215,6 @@ public class SessionController {
 
                 // Now clear the tag text and a view reload ( or `git status`) to show that something happened
                 tagNameField.clear();
-                console.info("About to statussssssss");
                 gitStatus();
             } catch (JGitInternalException e) {
                 showJGitInternalError(e);

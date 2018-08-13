@@ -308,7 +308,7 @@ public class CommitTreeModel{
         List<CommitHelper> cellsWithNewTypes = new ArrayList<>();
 
         return Observable.fromIterable(commits)
-                //.subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.io())
                 .map(curCommitHelper -> addCommitToTree(curCommitHelper, treeGraph.treeGraphModel))
                 .map(batchOfCellswithNewTypes -> cellsWithNewTypes.addAll(batchOfCellswithNewTypes))
 
@@ -576,7 +576,6 @@ public class CommitTreeModel{
      */
     public synchronized void updateAllRefLabels() {
         Main.assertFxThread();
-        console.info("Updatring ref labels");
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
         List<RefHelper> refHelpers = new ArrayList<>();
@@ -610,7 +609,6 @@ public class CommitTreeModel{
                     continue;
                 }
                 String commitDescriptor = repo.getCommitDescriptorString(commit, false);
-                console.info("commitDescriptor is " + commit);
                 treeGraph.treeGraphModel.setCellLabels(commit, commitDescriptor,
                         Collections.unmodifiableList(commitLabelMap.get(commit)));
                 treeGraph.treeGraphModel.setCurrentCellLabels(commit, currentAbbrevBranches);

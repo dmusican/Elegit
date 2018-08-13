@@ -127,7 +127,7 @@ public class TagFXTest extends ApplicationTest {
         assertNotNull(lookup("testTag").query());
 
 
-        Thread.sleep(500000);
+        Thread.sleep(5000);
 
 //        SessionController.gitStatusCompletedOnce.await();
 

@@ -43,7 +43,6 @@ public class CellLabel extends HBox {
 
     // Doesn't necessarily have to be on FX thread, since object may not be on scene graph
     CellLabel(RefHelper refHelper, boolean isCurrent, boolean isTag) {
-        Main.assertFxThread();
         this.refHelper = refHelper;
         this.name = refHelper.getAbbrevName();
         this.isCurrent = isCurrent;
