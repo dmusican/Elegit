@@ -64,7 +64,7 @@ public class RevertFXTest extends ApplicationTest {
 
         RevCommit prevCommit = commit.getParent(0);
 
-        rightClickOn(Matchers.hasToString(prevCommit.getName()))
+        rightClickOn("#"+prevCommit.getName())
                 .clickOn("Revert...")
                 .clickOn("Revert this commit");
 

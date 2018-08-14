@@ -126,6 +126,16 @@ public class TagFXTest extends ApplicationTest {
 
         assertNotNull(lookup("testTag").query());
 
+        clickOn("#"+firstCommit1.getName());
+        clickOn("#tagNameField");
+        write("testTag2");
+        clickOn("#tagButton");
+
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                                  () -> lookup("testTag").query() != null);
+
+        assertNotNull(lookup("testTag2").query());
+
 
         Thread.sleep(5000);
 
