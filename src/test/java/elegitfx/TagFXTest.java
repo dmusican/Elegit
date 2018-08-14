@@ -126,7 +126,6 @@ public class TagFXTest extends ApplicationTest {
 
         assertNotNull(lookup("testTag").query());
 
-        clickOn("#"+firstCommit1.getName());
         clickOn("#tagNameField");
         write("testTag2");
         clickOn("#tagButton");
@@ -137,17 +136,7 @@ public class TagFXTest extends ApplicationTest {
         assertNotNull(lookup("testTag2").query());
 
 
-        Thread.sleep(5000);
-
-//        SessionController.gitStatusCompletedOnce.await();
-
-//        // Verify that file contents have reverted back to what they should be; do this check in the FX queue
-//        // to make sure it follows the above
-//        Scanner scanner = new Scanner(local.resolve("file0"));
-//        TestCase.assertTrue(scanner.next().startsWith("start"));
-//        TestCase.assertTrue(!scanner.hasNext());
-//        scanner.close();
-//
+        SessionController.gitStatusCompletedOnce.await();
 
         assertEquals(0, Main.getAssertionCount());
 

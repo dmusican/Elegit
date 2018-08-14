@@ -65,7 +65,7 @@ public class CheckoutFileFXTest extends ApplicationTest {
         console.info("Set up done.");
 
         // Click on last commit and checkout the README.md file
-        rightClickOn(Matchers.hasToString(commit.getName()))
+        rightClickOn("#"+commit.getName())
                 .clickOn("Checkout files...")
                 .clickOn("#fileField")
                 .write("README.md")
