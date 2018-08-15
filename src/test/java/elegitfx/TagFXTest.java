@@ -135,6 +135,8 @@ public class TagFXTest extends ApplicationTest {
 
         assertNotNull(lookup("testTag2").query());
 
+        rightClickOn("#pushButton")
+                .clickOn("#pushTagsContext");
 
         SessionController.gitStatusCompletedOnce.await();
 
