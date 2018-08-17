@@ -147,7 +147,11 @@ public class TagFXTest extends ApplicationTest {
         clickOn("Yes");
 
         // Make sure that push operation has actually completed; it happens in a different thread than this one.
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> !BusyWindow.window.isShowing());
         WaitForAsyncUtils.waitForFxEvents();
+        SessionController.gitStatusCompletedOnce.await();
 
         // Verify tag made it to remote
         LsRemoteCommand command = Git.lsRemoteRepository().setHeads(true).setTags(true).setRemote("file://" +remote.toString());
