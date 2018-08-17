@@ -61,7 +61,7 @@ public class ShowParentsFXTest extends ApplicationTest {
         console.info("Set up done.");
 
         // Click on last commit and ask to see it's parents
-        rightClickOn(Matchers.hasToString(commit.getName()))
+        rightClickOn("#"+commit.getName())
                 .clickOn("Show Relatives")
                 .clickOn("Parents");
 

@@ -8,6 +8,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
@@ -125,6 +126,7 @@ public class Cell extends Pane {
         this.time = time;
         this.parents = new ParentCell(this, parents);
         this.refLabels = new CellLabelContainer();
+//        this.getChildren().add(refLabels);
         this.localOrRemote = type;
 
         setShape(DEFAULT_SHAPE);
@@ -172,6 +174,8 @@ public class Cell extends Pane {
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
 
         this.persistentCellState = CellState.STANDARD;
+
+
     }
 
     // Can be done off FX thread since synchronized, and doesn't make any actual GUI changes. Critical to note
@@ -229,7 +233,7 @@ public class Cell extends Pane {
             setTranslateX(x);
             setTranslateY(y+BOX_SHIFT);
         }
-        this.refLabels.translate(x,y);
+        this.refLabels.translate(0,0);
         this.hasUpdatedPosition.set(true);
         if (!this.refLabels.isVisible())
             this.refLabels.setVisible(true);
@@ -273,11 +277,11 @@ public class Cell extends Pane {
         newFxShapeObject.getStyleClass().setAll(this.fxShapeObject.getStyleClass());
         newFxShapeObject.setId(this.fxShapeObject.getId());
 
+        // Remove old fx object from pane, and add new one
+        getChildren().remove(this.fxShapeObject);
+
         this.shape = newShape;
         this.fxShapeObject = newFxShapeObject;
-
-        // Remove old fx object from pane, and add new one
-        getChildren().clear();
         getChildren().add(this.fxShapeObject);
 
         setFillType(this.fxShapeObject, CellState.STANDARD);
@@ -309,6 +313,11 @@ public class Cell extends Pane {
     // Can potentially be done off FX thread since synchronized, and might be used on something off the scene graph.
     synchronized void setLabels(String commitDescriptor, List<RefHelper> refLabels){
         setCommitDescriptor(commitDescriptor);
+        if (refLabels.size() > 0 && !getChildren().contains(this.refLabels)) {
+            getChildren().add(this.refLabels);
+        } else if (refLabels.size() == 0 && getChildren().contains(this.refLabels)) {
+            getChildren().remove(this.refLabels);
+        }
         setRefLabels(refLabels);
     }
 

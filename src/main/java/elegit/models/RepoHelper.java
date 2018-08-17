@@ -582,21 +582,36 @@ public class RepoHelper {
         this.remoteCommits.set(parseAllRemoteCommits());
     }
 
+
+    public PushCommand prepareToPushTags(boolean isTest) throws MissingRepoException, GitAPIException,
+            IOException, NoCommitsToPushException {
+        logger.info("Attempting push tags");
+        if (!exists()) throw new MissingRepoException();
+        if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
+
+        if (this.getBranchModel().getCurrentRemoteBranch() == null) {
+            if (isTest || PopUpWindows.trackCurrentBranchRemotely(getBranchModel().getCurrentBranch().getRefName())) {
+                setUpstreamBranch(getBranchModel().getCurrentBranch(), getRemote());
+            } else {
+                throw new NoCommitsToPushException();
+            }
+        }
+
+        try (Git git = new Git(getRepo())) {
+            PushCommand push = git.push().setPushTags();
+            wrapAuthentication(push);
+            return push;
+        }
+    }
+
+
     /**
      * Pushes all tags in /refs/tags/.
      *
      * @throws GitAPIException if the `git push --tags` call fails.
      */
-    public Iterable<PushResult> pushTags() throws GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException {
-        logger.info("Attempting push tags");
-        if (!exists()) throw new MissingRepoException();
-        if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
-        Git git = new Git(this.getRepo());
-        PushCommand push = git.push();
-        wrapAuthentication(push);
-
-        Iterable<PushResult> pushResult = threadsafeGitManager.get().pushTags(push);
-        git.close();
+    public Iterable<PushResult> pushTags(PushCommand push) throws GitAPIException, PushToAheadRemoteError, IOException {
+        Iterable<PushResult> pushResult = push.call();
 
         boolean allPushesWereRejected = true;
         boolean anyPushWasRejected = false;

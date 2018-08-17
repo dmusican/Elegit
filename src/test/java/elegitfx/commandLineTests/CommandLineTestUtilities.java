@@ -237,7 +237,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
 
     public String[] clickReset(RevCommit commit, String resetType) {
         // Click on last commit and checkout the README.md file
-        rightClickOn(Matchers.hasToString(commit.getName()))
+        rightClickOn("#"+commit.getName())
                 .clickOn("Reset...")
                 // Weird thing where if the menu chain gets too big, it moves in a way that causes the menu to disappear
                 .clickOn("Advanced", Motion.HORIZONTAL_FIRST)

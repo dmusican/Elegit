@@ -290,7 +290,7 @@
                         <ContextMenu fx:id="pushContextMenu">
                             <items>
                                 <MenuItem onAction="#handlePushAllButton" text="Push all branches" />
-                                <MenuItem onAction="#handlePushTagsButton" text="push --tags" />
+                                <MenuItem id="pushTagsContext" onAction="#handlePushTagsButton" text="push --tags" />
                             </items>
                         </ContextMenu>
                     </contextMenu>
