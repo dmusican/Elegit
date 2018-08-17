@@ -583,11 +583,19 @@ public class RepoHelper {
     }
 
 
-    public PushCommand prepareToPushTags() throws MissingRepoException, GitAPIException,
+    public PushCommand prepareToPushTags(boolean isTest) throws MissingRepoException, GitAPIException,
             IOException, NoCommitsToPushException {
         logger.info("Attempting push tags");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
+
+        if (this.getBranchModel().getCurrentRemoteBranch() == null) {
+            if (isTest || PopUpWindows.trackCurrentBranchRemotely(getBranchModel().getCurrentBranch().getRefName())) {
+                setUpstreamBranch(getBranchModel().getCurrentBranch(), getRemote());
+            } else {
+                throw new NoCommitsToPushException();
+            }
+        }
 
         try (Git git = new Git(getRepo())) {
             PushCommand push = git.push().setPushTags();

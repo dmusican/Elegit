@@ -1295,7 +1295,7 @@ public class SessionController {
             } else if (pushType == PushType.ALL) {
                 push = helper.prepareToPushAll();
             } else if (pushType == PushType.TAGS) {
-                push = helper.prepareToPushTags();
+                push = helper.prepareToPushTags(false);
             } else {
                 push = null;
                 assert false : "PushType enum case not handled";
@@ -1376,7 +1376,7 @@ public class SessionController {
                 } else if (pushType == PushType.ALL) {
                     helper.pushAll(push);
                 } else if (pushType == PushType.TAGS) {
-                    helper.pushAll(push);
+                    helper.pushTags(push);
                 } else {
                     throw new RuntimeException("PushType enum case not handled");
                 }

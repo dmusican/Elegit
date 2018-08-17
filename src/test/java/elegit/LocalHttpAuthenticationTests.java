@@ -319,7 +319,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         helper.pushAll(command);
         String commitName = helper.getAllCommits().iterator().next().getName();
         helper.getTagModel().tag("aTestTag", commitName);
-        command = helper.prepareToPushTags();
+        command = helper.prepareToPushTags(true);
         helper.pushTags(command);
     }
 

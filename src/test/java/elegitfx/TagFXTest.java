@@ -9,6 +9,10 @@ import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.LsRemoteCommand;
+import org.eclipse.jgit.api.TransportCommand;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.After;
 import org.junit.Before;
@@ -24,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -100,6 +105,7 @@ public class TagFXTest extends ApplicationTest {
         TestUtilities.commonStartupOffFXThread();
 
         Path remote = directoryPath.resolve("remote1");
+        console.info("remote = " + remote);
         Path local = directoryPath.resolve("local1");
         int numFiles = 1;
         int numCells = 2;
@@ -114,7 +120,6 @@ public class TagFXTest extends ApplicationTest {
                                   () -> !BusyWindow.window.isShowing());
         SessionController.gitStatusCompletedOnce.await();
 
-        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
         clickOn("#"+firstCommit1.getName());
         clickOn("#tagNameField");
@@ -137,8 +142,27 @@ public class TagFXTest extends ApplicationTest {
 
         rightClickOn("#pushButton")
                 .clickOn("#pushTagsContext");
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                                  () -> lookup("Yes").query() != null);
+        clickOn("Yes");
 
-        SessionController.gitStatusCompletedOnce.await();
+        // Make sure that push operation has actually completed; it happens in a different thread than this one.
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // Verify tag made it to remote
+        LsRemoteCommand command = Git.lsRemoteRepository().setHeads(true).setTags(true).setRemote("file://" +remote.toString());
+        System.out.println("coming");
+        Collection<Ref> refs = command.call();
+        boolean foundTag1 = false;
+        boolean foundTag2 = false;
+        for (Ref ref : refs) {
+            if (ref.getName().equals("refs/tags/testTag"))
+                foundTag1 = true;
+            else if (ref.getName().equals("refs/tags/testTag2"))
+                foundTag2 = true;
+        }
+
+        assert(foundTag1 && foundTag2);
 
         assertEquals(0, Main.getAssertionCount());
 

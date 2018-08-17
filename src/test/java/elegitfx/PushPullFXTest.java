@@ -129,7 +129,7 @@ public class PushPullFXTest extends ApplicationTest {
         assertFalse(helperPush.getCommit(headId).hasTag(tagName));
         helperPush.getTagModel().tag(tagName, headId.name());
         assertTrue(helperPush.getCommit(headId).hasTag(tagName));
-        command = helperPush.prepareToPushTags();
+        command = helperPush.prepareToPushTags(true);
         helperPush.pushTags(command);
 
         // Remove the tag we just added
