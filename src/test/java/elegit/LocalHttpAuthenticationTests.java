@@ -319,7 +319,8 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         helper.pushAll(command);
         String commitName = helper.getAllCommits().iterator().next().getName();
         helper.getTagModel().tag("aTestTag", commitName);
-        helper.pushTags();
+        command = helper.prepareToPushTags();
+        helper.pushTags(command);
     }
 
     // Test to make sure creating a local branch lets us push and

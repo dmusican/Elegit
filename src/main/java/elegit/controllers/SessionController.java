@@ -1253,22 +1253,33 @@ public class SessionController {
         }
     }
 
-    public enum PushType {BRANCH, ALL}
+    public enum PushType {BRANCH, ALL, TAGS}
 
     public void handlePushButton() {
-        RepositoryMonitor.pause();
+        Main.assertFxThread();
         pushBranchOrAllSetup(PushType.BRANCH);
-        RepositoryMonitor.unpause();
     }
 
     public void handlePushAllButton() {
+        Main.assertFxThread();
         pushBranchOrAllSetup(PushType.ALL);
     }
+
+    /**
+     * Performs a `git push --tags`
+     */
+    public synchronized void handlePushTagsButton() {
+        Main.assertFxThread();
+        pushBranchOrAllSetup(PushType.TAGS);
+    }
+
 
     // Set up the push command. Involves querying the user to see if remote branches should be made.
     // This query is done once.
     private void pushBranchOrAllSetup(PushType pushType)  {
+        Main.assertFxThread();
 
+        List<Result> results = new ArrayList<>();
         try {
 
             logger.info("Push button clicked");
@@ -1283,6 +1294,8 @@ public class SessionController {
                 push = helper.prepareToPushCurrentBranch(false);
             } else if (pushType == PushType.ALL) {
                 push = helper.prepareToPushAll();
+            } else if (pushType == PushType.TAGS) {
+                push = helper.prepareToPushTags();
             } else {
                 push = null;
                 assert false : "PushType enum case not handled";
@@ -1290,25 +1303,10 @@ public class SessionController {
 
             pushBranchOrAll(pushType, push);
 
-        } catch (NoRepoLoadedException e) {
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        } catch (NoCommitsToPushException e) {
-            this.showNoCommitsToPushNotification();
-        } catch (IOException e) {
-            this.showGenericErrorNotification(e);
-            e.printStackTrace();
-        } catch (PushToAheadRemoteError pushToAheadRemoteError) {
-            pushToAheadRemoteError.printStackTrace();
-        } catch (MissingRepoException e) {
-            showMissingRepoNotification();
-            setButtonsDisabled(true);
-            refreshRecentReposInDropdownAndMenu();
-        } catch (GitAPIException e) {
-            showGenericErrorNotification(e);
-            e.printStackTrace();
+        } catch (Exception e) {
+            results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.PUSH, e));
         }
-
+        gitOperationShowNotifications(notificationPaneController, Collections.unmodifiableList(results));
     }
 
     /**
@@ -1340,6 +1338,10 @@ public class SessionController {
             commandLineController.updateCommandText("git push");
         } else if (pushType == PushType.ALL) {
             commandLineController.updateCommandText("git push -all");
+        } else if (pushType == PushType.TAGS) {
+            commandLineController.updateCommandText("git push --tags");
+        } else {
+            throw new RuntimeException("PushType not checked: " + pushType);
         }
     }
 
@@ -1373,9 +1375,12 @@ public class SessionController {
                     helper.pushCurrentBranch(push);
                 } else if (pushType == PushType.ALL) {
                     helper.pushAll(push);
+                } else if (pushType == PushType.TAGS) {
+                    helper.pushAll(push);
                 } else {
-                    assert false : "PushType enum case not handled";
+                    throw new RuntimeException("PushType enum case not handled");
                 }
+
 
             } catch (Exception e) {
                 results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.PUSH, e));
@@ -1403,92 +1408,6 @@ public class SessionController {
             response = null;
         }
         return response;
-    }
-
-    /**
-     * Performs a `git push --tags`
-     */
-    public synchronized void handlePushTagsButton() {
-        Main.assertFxThread();
-        try {
-            logger.info("Push tags button clicked");
-            commandLineController.updateCommandText("git push --tags");
-            final RepoHelperBuilder.AuthDialogResponse credentialResponse = authenticateAndShowBusy("Pushing tags...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    tryCommandAgainWithHTTPAuth = false;
-                    try {
-                        handlePushTagsButtonDetails(credentialResponse);
-                    } catch (TransportException e) {
-                        determineIfTryAgain(e);
-                    } finally {
-                        BusyWindow.hide();
-                    }
-
-                    if (tryCommandAgainWithHTTPAuth) {
-                        Platform.runLater(() -> {
-                            handlePushTagsButton();
-                        });
-                    }
-
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git push --tags");
-            th.start();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        } catch (CancelledAuthorizationException e) {
-            this.showCommandCancelledNotification();
-        }
-
-    }
-
-    private void handlePushTagsButtonDetails(RepoHelperBuilder.AuthDialogResponse response) throws TransportException {
-        Iterable<PushResult> results;
-        try{
-            RepositoryMonitor.resetFoundNewChanges();
-            RepoHelper helper = theModel.getCurrentRepoHelper();
-            if (response != null) {
-                helper.setOwnerAuth(
-                        new UsernamePasswordCredentialsProvider(response.username, response.password));
-            }
-            results = helper.pushTags();
-            gitStatus();
-
-            boolean upToDate = true;
-
-            if (results == null)
-                upToDate = false;
-            else
-                for (PushResult result : results)
-                    for (RemoteRefUpdate update : result.getRemoteUpdates())
-                        if (update.getStatus() == RemoteRefUpdate.Status.OK)
-                            upToDate=false;
-
-            if (upToDate)
-                showTagsUpToDateNotification();
-            else
-                showTagsUpdatedNotification();
-
-        } catch(InvalidRemoteException e){
-            showNoRemoteNotification();
-        } catch(PushToAheadRemoteError e) {
-            showPushToAheadRemoteNotification(e.isAllRefsRejected());
-        } catch(MissingRepoException e) {
-            showMissingRepoNotification();
-            setButtonsDisabled(true);
-            refreshRecentReposInDropdownAndMenu();
-        } catch (TransportException e) {
-            throw e;
-
-        } catch(Exception e) {
-            showGenericErrorNotification(e);
-            e.printStackTrace();
-        }
     }
 
 
@@ -2086,8 +2005,12 @@ public class SessionController {
                 logger.warn("Shouldn't matter (NRLE or CAE): " + result.exception.getStackTrace());
 
             } else if (result.exception instanceof IOException && result.operation == ResultOperation.LOAD) {
-                showNotification(nc, "Repo not loaded warning",
+                showNotification(nc, "Repo not loaded warning (IOException)",
                         "Something went wrong, so no repository was loaded.");
+
+            } else if (result.exception instanceof IOException && result.operation == ResultOperation.PUSH) {
+                showNotification(nc, "Repo not pushed warning (IOException)",
+                                 "Something went wrong, so no repository was pushed (IOException).");
 
             } else if (result.exception instanceof InvalidPathException &&
                     result.operation == ResultOperation.LOAD) {
@@ -2102,11 +2025,23 @@ public class SessionController {
                 showNotification(nc,"Only one parent allowed warning.",
                                  "You are only allowed to have one parent for this operation.");
 
-            } else {
+            } else if (result.exception instanceof NoCommitsToPushException) {
+                showNotification(nc,"No local commits to push warning.",
+                                 "There aren't any local commits to push.");
 
+            } else if (result.exception instanceof PushToAheadRemoteError) {
+                boolean allRefsRejected = ((PushToAheadRemoteError)(result.exception)).isAllRefsRejected();
+                if (allRefsRejected) {
+                    showNotification(nc, "Remote ahead of local warning.",
+                                     "The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
+                } else {
+                    showNotification(nc, "Need to fetch/merge warning.",
+                                     "You need to fetch/merge in order to push all of your changes.");
+                }
+            } else {
                 String stackTrace = Arrays.toString(result.exception.getStackTrace());
                 showNotification(nc, "Unhandled error warning: " + stackTrace,
-                        "An error occurred when fetching: " + stackTrace);
+                        "Unhandled error warning: " + stackTrace.substring(0,500));
             }
         }
     }
@@ -2805,13 +2740,6 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No tag name warning");
             this.notificationPaneController.addNotification("You need to write a tag name in order to tag the commit");
-        });
-    }
-
-    private void showNoCommitsToPushNotification(){
-        Platform.runLater(() -> {
-            logger.warn("No local commits to push warning");
-            this.notificationPaneController.addNotification("There aren't any local commits to push");
         });
     }
 
