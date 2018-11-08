@@ -428,6 +428,7 @@ public class PopUpWindows {
         textArea.setWrapText(true);
         textArea.setPrefSize(250, 150);
         textArea.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        textArea.setId("commitAllMessage");
 
         HBox hBox = new HBox(textArea);
         hBox.setAlignment(Pos.CENTER);

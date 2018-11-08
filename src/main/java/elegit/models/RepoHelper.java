@@ -411,6 +411,8 @@ public class RepoHelper {
     }
 
     public void commitAll(String message) throws MissingRepoException, GitAPIException, IOException {
+        Main.assertNotFxThread();
+
         if (!exists()) throw new MissingRepoException();
 
         threadsafeGitManager.get().commitAll(message);

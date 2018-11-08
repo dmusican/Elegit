@@ -11,6 +11,7 @@ import elegit.models.ExistingRepoHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
+import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -140,6 +141,31 @@ public class CommitAndPushFXTest extends ApplicationTest {
                                   () -> lookup(Matchers.instanceOf(Cell.class)).queryAll().size() == numCells + 1);
 
 
+        // Do another change, this time without using git add, so we can test commit -a
+        Path thisFileLocation = local.resolve("file0");
+        writeContentToFile(local, thisFileLocation, "another change", false);
+        rightClickOn("#mainCommitButton").clickOn("#commitContextMenu");
+
+
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#commitAllMessage") != null);
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#commitAllMessage").query().isVisible());
+
+
+        // There's some kind of TestFX bug where sometimes it misses the click on the modal window the first time.
+        // At any rate, by doing a click first below, that helps.
+        clickOn("#commitAllMessage");
+
+        clickOn("#commitAllMessage")
+                .write("a")
+                .press(KeyCode.SHIFT)
+                .press(KeyCode.TAB)
+                .release(KeyCode.TAB)
+                .release(KeyCode.SHIFT)
+                .press(KeyCode.ENTER);
+
+
 
         // Do the push
         clickOn("#pushButton");
@@ -159,7 +185,7 @@ public class CommitAndPushFXTest extends ApplicationTest {
     }
 
     private RevCommit makeTestRepo(Path remote, Path local, int numFiles, int numCommits) throws GitAPIException,
-            IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
+            IOException, CancelledAuthorizationException, MissingRepoException {
         Git.init().setDirectory(remote.toFile()).setBare(true).call();
         Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
 
@@ -167,9 +193,7 @@ public class CommitAndPushFXTest extends ApplicationTest {
 
         for (int fileNum = 0; fileNum < numFiles; fileNum++) {
             Path thisFileLocation = local.resolve("file" + fileNum);
-            FileWriter fw = new FileWriter(thisFileLocation.toString(), true);
-            fw.write("start"+random.nextInt()); // need this to make sure each repo comes out with different hashes
-            fw.close();
+            writeContentToFile(local, thisFileLocation, "start"+random.nextInt(), true);
             helper.addFilePathTest(thisFileLocation);
         }
 
@@ -183,9 +207,7 @@ public class CommitAndPushFXTest extends ApplicationTest {
             }
             for (int fileNum = 0; fileNum < numFiles; fileNum++) {
                 Path thisFileLocation = local.resolve("file" + fileNum);
-                FileWriter fw = new FileWriter(thisFileLocation.toString(), false);
-                fw.write("" + i);
-                fw.close();
+                writeContentToFile(local, thisFileLocation, ""+i, false);
                 helper.addFilePathTest(thisFileLocation);
             }
 
@@ -198,4 +220,10 @@ public class CommitAndPushFXTest extends ApplicationTest {
         return firstCommit;
     }
 
+    private void writeContentToFile(Path local, Path fileLocation, String content, boolean append) throws IOException {
+        Path thisFileLocation = local.resolve(fileLocation);
+        FileWriter fw = new FileWriter(thisFileLocation.toString(), append);
+        fw.write(content);
+        fw.close();
+    }
 }
