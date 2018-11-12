@@ -322,6 +322,17 @@ public class PopUpWindows {
         return result.isPresent() && result.get() == checkout;
     }
 
+    public static boolean showRemoveAlert() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,"Are you sure you want to remove the selected files? " +
+                "This will remove them from both the working tree and the index.");
+
+        alert.setTitle("Confirm removal");
+        alert.setHeaderText("Are you sure you want to remove the selected files?");
+        alert.setContentText("This will remove them from both the working tree and the index.");
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
+    }
+
     /**
      * Informs the user that they are tracking ignored files
      *

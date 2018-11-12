@@ -584,7 +584,7 @@ public class SessionController {
                 "Checkout files from the index (discard all unstaged changes)"
         ));
         this.removeButton.setTooltip(new Tooltip(
-                "Delete selected files and remove them from Git"
+                "Delete selected files from working tree and index"
         ));
         this.fetchButton.setTooltip(new Tooltip(
                 "Download files from another repository to remote repository"
@@ -982,6 +982,8 @@ public class SessionController {
     public void handleRemoveButton() {
         try {
             logger.info("Remove button clicked");
+            if (! PopUpWindows.showRemoveAlert()) return;
+
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
