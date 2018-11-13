@@ -100,6 +100,9 @@ public class BranchCheckoutController {
         stage.setScene(new Scene(anchorRoot, 550, 450));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed branch manager window"));
+        stage.setOnHiding(e -> {
+            notificationPaneController.hideBubbleInstantly();
+        });
         stage.show();
         this.notificationPaneController.setAnchor(stage);
     }

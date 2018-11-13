@@ -181,6 +181,9 @@ public class CreateDeleteBranchWindowController {
         stage.setScene(new Scene(anchorRoot));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed create/delete branch window"));
+        stage.setOnHiding(e -> {
+            notificationPaneController.hideBubbleInstantly();
+        });
         stage.show();
         if(tab.equals("create")) tabPane.getSelectionModel().select(createTab);
         if(tab.equals("local")) tabPane.getSelectionModel().select(deleteLocalTab);

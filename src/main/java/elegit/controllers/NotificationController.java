@@ -17,6 +17,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,6 +76,8 @@ public class NotificationController {
         this.notificationNum.setPickOnBounds(false);
 
         this.notificationAlert = new PopOver();
+
+
     }
 
     public synchronized void setAnchor(Stage stage) {
@@ -363,9 +366,19 @@ public class NotificationController {
     }
 
     /**
-     * Helper method that hides the notification Alert
+     * Hides bubble instantly, as well as stops any task that may be trying to hide it later
      */
     private synchronized void hideBubble() {
+        if (hideBubbleTask != null) hideBubbleTask.cancel();
         if(notificationAlert != null) notificationAlert.hide();
     }
+
+    /**
+     * Hides bubble instantly, as well as stops any task that may be trying to hide it later
+     */
+    public synchronized void hideBubbleInstantly() {
+        if (hideBubbleTask != null) hideBubbleTask.cancel();
+        if(notificationAlert != null) notificationAlert.hide(Duration.ZERO);
+    }
+
 }

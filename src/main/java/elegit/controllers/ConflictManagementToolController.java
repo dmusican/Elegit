@@ -57,7 +57,7 @@ public class ConflictManagementToolController {
     @GuardedBy("this")
     private SessionController sessionController;
     @FXML
-    private AnchorPane anchorRoot;
+    private AnchorPane conflictManagementPane;
     @FXML
     private Text leftDocLabel;
     @FXML
@@ -278,13 +278,18 @@ public class ConflictManagementToolController {
      */
     void showStage(AnchorPane pane) {
         Main.assertFxThread();
-        anchorRoot = pane;
+        conflictManagementPane = pane;
         stage = new Stage();
         stage.setTitle("Conflict Management Tool");
-        stage.setScene(new Scene(anchorRoot));
+        stage.setScene(new Scene(conflictManagementPane));
         stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setOnCloseRequest(event -> logger.info("Closed conflict management tool"));
+        stage.setOnCloseRequest(event -> {
+            logger.info("Closed conflict management tool");
+        });
+        stage.setOnHiding(e -> {
+            notificationPaneController.hideBubbleInstantly();
+        });
         stage.show();
         notificationPaneController.setAnchor(stage);
     }
