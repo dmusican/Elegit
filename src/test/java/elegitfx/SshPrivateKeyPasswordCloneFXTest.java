@@ -164,12 +164,12 @@ public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
             RepositoryMonitor.pause();
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> lookup("Yes").query() != null);
+                                      () -> lookup("Yes").tryQuery().isPresent());
             WaitForAsyncUtils.waitForFxEvents();
             clickOn("Yes");
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> lookup("#sshprompt").query() != null);
+                                      () -> lookup("#sshprompt").tryQuery().isPresent());
             WaitForAsyncUtils.waitForFxEvents();
 
 
@@ -180,7 +180,7 @@ public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
 
             // Wait until a node is in the graph, indicating clone is done
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> lookup(".tree-cell").query() != null);
+                                      () -> lookup(".tree-cell").tryQuery().isPresent());
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
 

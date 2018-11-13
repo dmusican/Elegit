@@ -198,8 +198,6 @@ public class CommitAndPushFXTest extends ApplicationTest {
         }
 
         RevCommit firstCommit = helper.commit("Appended to file");
-        Cell firstCellAttempt = lookup(firstCommit.getName()).query();
-        console.info("firstCell = " + firstCellAttempt);
 
         for (int i = 0; i < numCommits; i++) {
             if (i % 100 == 0) {

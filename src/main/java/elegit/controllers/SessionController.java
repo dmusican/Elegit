@@ -346,6 +346,9 @@ public class SessionController {
      */
     public void setStageForNotifications(Stage stage) {
         notificationPaneController.setAnchor(stage);
+        stage.setOnHiding(e -> {
+            notificationPaneController.hideBubbleInstantly();
+        });
     }
 
     /**

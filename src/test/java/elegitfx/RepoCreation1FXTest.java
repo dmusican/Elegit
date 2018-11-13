@@ -114,8 +114,6 @@ public class RepoCreation1FXTest extends ApplicationTest {
         fw.close();
         helper.addFilePathTest(fileLocation);
         RevCommit firstCommit = helper.commit("Appended to file");
-        Cell firstCellAttempt = lookup(firstCommit.getName()).query();
-        logger.info("firstCell = " + firstCellAttempt);
 
         for (int i=0; i < 100; i++) {
             LocalBranchHelper branchHelper = helper.getBranchModel().createNewLocalBranch("branch" + i);
