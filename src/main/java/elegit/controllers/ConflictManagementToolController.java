@@ -9,6 +9,8 @@ import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
+import io.reactivex.Completable;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -45,6 +47,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
@@ -138,6 +141,10 @@ public class ConflictManagementToolController {
     private static final Logger logger = LogManager.getLogger();
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
+
+    // Used for testing purposes. Used to indicate that the GUI is waiting for an update, and thus
+    // the test shouldn't yet test for correctness.
+    public static final AtomicBoolean guiWaiting = new AtomicBoolean(false);
 
     synchronized void setSessionController(SessionController sessionController) {
         Main.assertFxThread();
@@ -646,29 +653,25 @@ public class ConflictManagementToolController {
     private void switchConflictLineOnBothSidesHandled(int conflictLineIndex) {
         Main.assertFxThread();
         if (autoSwitchConflicts.get()) {
-            if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()) {
+            if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(
+                    conflictLineIndex).isHandled()) {
                 // The key part in this is the Thread.sleep() and the handleToggleDown(). The rest is so the highlighting, etc. will still happen.
-                Task<Void> sleeper = new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            console.info("Something went wrong with the sleep timer for auto switching between conflicts.");
-                            throw new ExceptionAdapter(e);
-                        }
-                        return null;
-                    }
-                };
-                sleeper.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-                    @Override
-                    public void handle(WorkerStateEvent event) {
-                        if (conflictsLeftToHandle.get() > 0) {
-                            handleToggleDown();
-                        }
-                    }
-                });
-                new Thread(sleeper).start();
+                // The reason for this timer is so that the user has a chance to see both conflicts briefly handled
+                // together. If the timer isn't there, the second conflict resolution isn't visible at all, and
+                // instantly disappears.
+                guiWaiting.set(true);
+                Completable.complete()
+                           .delay(100, TimeUnit.MILLISECONDS)
+                           .observeOn(JavaFxScheduler.platform())
+                           .subscribe(() -> {
+                                          if (conflictsLeftToHandle.get() > 0) {
+                                              handleToggleDown();
+                                          }
+                                          guiWaiting.set(false);
+                                      },
+                                      t -> {
+                                          throw new ExceptionAdapter(t);
+                                      });
             }
         }
     }
@@ -1007,6 +1010,11 @@ public class ConflictManagementToolController {
 
     public NotificationController getNotificationPaneController() {
         return notificationPaneController;
+    }
+
+    // Used for testing purposes
+    public boolean getGuiWaiting() {
+        return guiWaiting.get();
     }
 
     private void showAllConflictsHandledNotification() {

@@ -1,5 +1,6 @@
 package elegitfx.commandLineTests;
 
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
@@ -282,9 +283,12 @@ public class CommandLineTestUtilities extends ApplicationTest {
             fileName = filePath.getFileName().toString();
         }
         final String lookUpFile = fileName;
-        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
-                () -> lookup(lookUpFile).queryAll().size() == 2);
-        sleep(100);
+
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+        SessionController.gitStatusCompletedOnce.await();
+//        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
+//                () -> lookup(lookUpFile).queryAll().size() == 2);
+//        sleep(100);
         // When looking up the file, it registers multiple nodes since it is nested inside a tree. Pick the
         // checkbox of interest.
         WorkingTreePanelView workingTree = lookup("#workingTreePanelView").query();
@@ -297,8 +301,10 @@ public class CommandLineTestUtilities extends ApplicationTest {
 
         // Wait for file to also be added to index pane
         logger.info("When add seems to be done");
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                () -> lookup(lookUpFile).queryAll().size() == 3);
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> !BusyWindow.window.isShowing());
+//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+//                () -> lookup(lookUpFile).queryAll().size() == 3);
     }
 
 }

@@ -1,6 +1,7 @@
 package elegitfx;
 
 import elegit.Main;
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.gui.WorkingTreePanelView;
 import elegit.models.ExistingRepoHelper;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
@@ -100,9 +102,8 @@ public class AddFXTest extends ApplicationTest {
         fw.write("update");
         fw.close();
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                  () -> lookup("README.md").queryAll().size() == 2);
-
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+        SessionController.gitStatusCompletedOnce.await();
 
         // When looking up README.md, it registers multiple nodes since it is nested inside a tree. Pick the
         // checkbox of interest.
@@ -114,8 +115,8 @@ public class AddFXTest extends ApplicationTest {
         clickOn("Add");
 
         // Wait for file to also be added to index pane
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                  () -> lookup("README.md").queryAll().size() == 3);
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> !BusyWindow.window.isShowing());
 
         console.info("When add seems to be done");
 
