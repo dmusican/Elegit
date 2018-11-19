@@ -64,15 +64,8 @@ public class CloneSshFXTest extends ApplicationTest {
 
     @Test
     public void sshCloneTest() throws Exception {
-        CommandLineController.setMethodCalled(false);
-
         // Clones a test repo via clicking the ribbon button
         String paths = commandLineTestUtilities.cloneRepoUsingButtons(testingRemoteAndLocalRepos, directoryPath);
-
-        // Make sure the text has been updated before checking it
-        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> CommandLineController.getMethodCalled());
-
-        console.info("Update text was called: " + CommandLineController.getMethodCalled());
 
         // Checks that the text in the command line box is what is expected.
         commandLineTestUtilities.checkCommandLineText("git clone " + paths);

@@ -96,7 +96,12 @@ public class MultipleConflictsManagementTestFX extends ApplicationTest {
         clickOn("#rightAccept");
         interact(() -> assertEquals("added in mergeBranch", middleDoc.getText(middleDoc.getCurrentParagraph())));
         clickOn("#leftAccept");
-        interact(() -> assertEquals("added in master", middleDoc.getText(middleDoc.getCurrentParagraph())));
+
+        // Clicking the left accept button should make the phrase "added in master" appear briefly in the middle pane,
+        // but then disappear because the conflict resolution jump occurs after 100ms. There used to be a test
+        // right here for that, but it's unreliable because it might not make it in before the jump actually happens.
+        // It's left here for reference so the reader can see what behavior should be, but it's not reliably testable.
+        // interact(() -> assertEquals("added in master", middleDoc.getText(middleDoc.getCurrentParagraph())));
 
         // Needed to make sure the jump to the next conflict happens before checking that it happened. This
         // atomic boolean variable is flagged when the GUI is waiting for an update.

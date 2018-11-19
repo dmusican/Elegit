@@ -1,9 +1,11 @@
 package elegitfx;
 
 import elegit.Main;
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ExistingRepoHelper;
+import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
@@ -30,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -172,22 +175,26 @@ public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
                                       () -> lookup("#sshprompt").tryQuery().isPresent());
             WaitForAsyncUtils.waitForFxEvents();
 
-
             // Enter passphrase
             clickOn("#sshprompt")
                     .write(passphrase)
                     .write("\n");
 
-            // Wait until a node is in the graph, indicating clone is done
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> lookup(".tree-cell").tryQuery().isPresent());
+
+            // Make sure current repo helper is set, which only happens after BusyWindow is already up
+            WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                      () -> SessionModel.getSessionModel().getCurrentRepoHelper() != null);
+
+            // Wait until BusyWindow no longer showing, indicating clone is done
+            WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                      () -> !BusyWindow.window.isShowing());
             WaitForAsyncUtils.waitForFxEvents();
-            sleep(100);
 
             assertEquals(0, ExceptionAdapter.getWrappedCount());
 
             // Shut down test SSH server
             sshd.stop();
+
         }
     }
 
