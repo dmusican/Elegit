@@ -24,6 +24,7 @@ import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.io.FileWriter;
 import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.control.TextArea;
@@ -74,19 +75,24 @@ public class CommitFXTest extends ApplicationTest {
         helper.addFilePathTest(fileLocation);
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
         RepositoryMonitor.unpause();
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                () -> lookup("commitTest.txt").queryAll().size() == 3);
+
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+        SessionController.gitStatusCompletedOnce.await();
+
         console.info("Before clicking commit");
         clickOn("Commit");
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#commitViewWindow").tryQuery().isPresent());
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#commitViewWindow").query().isVisible());
         Node node = lookup("#commitViewWindow").query();
         Node area = node.lookup("#commitMessage");
         console.info(area);
         clickOn(area).write("testing");
         clickOn(node.lookup("#commitViewCommitButton"));
-        //this should really have something that checks if the new commit has shown up, but just waiting a second seems to work
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                () -> lookup("commitTest.txt").queryAll().size() != 3);
-        sleep(1500);
+
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> !BusyWindow.window.isShowing());
         commandLineTestUtilities.checkCommandLineText("git commit -m\"testing\"");
 
 

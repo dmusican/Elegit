@@ -1,5 +1,6 @@
 package elegitfx.commandLineTests;
 
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.gui.WorkingTreePanelView;
 import elegit.models.ExistingRepoHelper;
@@ -23,6 +24,7 @@ import sharedrules.TestingRemoteAndLocalReposRule;
 import java.io.FileWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -77,15 +79,16 @@ public class AddAllFXTest extends ApplicationTest{
             fw.write("update");
             fw.close();
         }
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                () -> lookup("addTest4.txt").queryAll().size() == 2);
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+        SessionController.gitStatusCompletedOnce.await();
         WorkingTreePanelView workingTree = lookup("#workingTreePanelView").query();
         interact(() -> workingTree.checkSelectAll());
 
         console.info("Before clicking add");
         clickOn("Add");
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                () -> lookup("addTest4.txt").queryAll().size() == 3);
+
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> !BusyWindow.window.isShowing());
 
         console.info("When add seems to be done");
 

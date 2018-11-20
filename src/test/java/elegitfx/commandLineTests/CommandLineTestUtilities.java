@@ -1,11 +1,13 @@
 package elegitfx.commandLineTests;
 
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.gui.WorkingTreePanelView;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.LocalBranchHelper;
+import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.TreeLayout;
@@ -71,6 +73,8 @@ public class CommandLineTestUtilities extends ApplicationTest {
                 TextArea currentCommand = (TextArea) scrollPane.getContent();
 
                 console.info("Checking the text...");
+                console.info("Checking " + command);
+                console.info("Also checking " + currentCommand.getText());
                 assertEquals(command, currentCommand.getText());
             }
         }});
@@ -134,12 +138,12 @@ public class CommandLineTestUtilities extends ApplicationTest {
             RepositoryMonitor.pause();
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                    () -> lookup("Yes").query() != null);
+                    () -> lookup("Yes").tryQuery().isPresent());
             WaitForAsyncUtils.waitForFxEvents();
             clickOn("Yes");
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                    () -> lookup("#sshprompt").query() != null);
+                    () -> lookup("#sshprompt").tryQuery().isPresent());
             WaitForAsyncUtils.waitForFxEvents();
 
             // Enter passphrase
@@ -147,17 +151,22 @@ public class CommandLineTestUtilities extends ApplicationTest {
                     .write(passphrase)
                     .write("\n");
 
-            // Wait until a node is in the graph, indicating clone is done
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                    () -> lookup(".tree-cell").query() != null);
+            RepositoryMonitor.pause();
+
+            // Make sure current repo helper is set, which only happens after BusyWindow is already up
+            WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                      () -> SessionModel.getSessionModel().getCurrentRepoHelper() != null);
+
+            // Wait until BusyWindow no longer showing, indicating clone is done
+            WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                      () -> !BusyWindow.window.isShowing());
             WaitForAsyncUtils.waitForFxEvents();
-            sleep(100);
 
             Assert.assertEquals(0, ExceptionAdapter.getWrappedCount());
 
             // See SshPrivatekeyPasswordExistingFXTest for why this is needed.
-            RepositoryMonitor.pause();
-            sleep(10, TimeUnit.SECONDS);
+            //RepositoryMonitor.pause();
+            //sleep(10, TimeUnit.SECONDS);
 
             // Shut down test SSH server
             sshd.stop();
@@ -168,7 +177,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
                     testingRemoteAndLocalRepos.getLocalBrief().toString();
 
             WaitForAsyncUtils.waitForFxEvents();
-            sleep(1000);
+            //sleep(1000);
 
             return paths;
         }
@@ -282,9 +291,12 @@ public class CommandLineTestUtilities extends ApplicationTest {
             fileName = filePath.getFileName().toString();
         }
         final String lookUpFile = fileName;
-        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
-                () -> lookup(lookUpFile).queryAll().size() == 2);
-        sleep(100);
+
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+        SessionController.gitStatusCompletedOnce.await();
+//        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
+//                () -> lookup(lookUpFile).queryAll().size() == 2);
+//        sleep(100);
         // When looking up the file, it registers multiple nodes since it is nested inside a tree. Pick the
         // checkbox of interest.
         WorkingTreePanelView workingTree = lookup("#workingTreePanelView").query();
@@ -297,8 +309,10 @@ public class CommandLineTestUtilities extends ApplicationTest {
 
         // Wait for file to also be added to index pane
         logger.info("When add seems to be done");
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                () -> lookup(lookUpFile).queryAll().size() == 3);
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> !BusyWindow.window.isShowing());
+//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+//                () -> lookup(lookUpFile).queryAll().size() == 3);
     }
 
 }

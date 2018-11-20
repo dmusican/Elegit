@@ -93,6 +93,9 @@ public class StashListController {
         stage.setOnCloseRequest(event -> {
             logger.info("Closed stash list window");
         });
+        stage.setOnHiding(e -> {
+            notificationPaneController.hideBubbleInstantly();
+        });
         stage.show();
         this.notificationPaneController.setAnchor(stage);
     }

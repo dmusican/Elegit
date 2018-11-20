@@ -74,6 +74,9 @@ public class CheckoutFilesController {
         stage.setOnCloseRequest(event -> {
             logger.info("Closed checkout files from commit window");
         });
+        stage.setOnHiding(e -> {
+            notificationPaneController.hideBubbleInstantly();
+        });
         stage.show();
         this.notificationPaneController.setAnchor(stage);
     }

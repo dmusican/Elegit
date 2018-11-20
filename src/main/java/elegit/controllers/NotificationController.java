@@ -17,6 +17,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,6 +74,10 @@ public class NotificationController {
         this.notificationPane.setPickOnBounds(false);
 
         this.notificationNum.setPickOnBounds(false);
+
+        this.notificationAlert = new PopOver();
+
+
     }
 
     public synchronized void setAnchor(Stage stage) {
@@ -82,9 +87,9 @@ public class NotificationController {
     /**
      * Updates the notification alert
      * @param notification new alert
-     * @return new PopOver
      */
-    private synchronized PopOver updateNotificationBubble(String notification) {
+    private synchronized void updateNotificationBubble(String notification) {
+        Main.assertFxThread();
         Text notificationText = new Text(notification);
         notificationText.setWrappingWidth(230);
         notificationText.setStyle("-fx-font-weight: bold");
@@ -93,12 +98,10 @@ public class NotificationController {
         hBox.setPadding(new Insets(0, 5, 0, 5));
         hBox.setOnMouseClicked(event -> showNotificationList());
 
-        PopOver popOver = new PopOver(hBox);
-        popOver.setTitle("New Notification");
-        popOver.setArrowLocation(PopOver.ArrowLocation.BOTTOM_RIGHT);
-        popOver.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_RIGHT);
-
-        return popOver;
+        notificationAlert.setContentNode(hBox);
+        notificationAlert.setTitle("New Notification");
+        notificationAlert.setArrowLocation(PopOver.ArrowLocation.BOTTOM_RIGHT);
+        notificationAlert.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_RIGHT);
     }
 
     /**
@@ -335,8 +338,9 @@ public class NotificationController {
      * @param notification to put in window
      */
     private synchronized void showBubble(String notification) {
+        Main.assertFxThread();
         if(!Main.isAppClosed.get() && !isListPaneVisible()) {
-            notificationAlert = updateNotificationBubble(notification);
+            updateNotificationBubble(notification);
             notificationAlert.show(this.anchor, anchor.getX() + anchor.getWidth() - 15, anchor.getY() + anchor.getHeight() - 15);
             notificationAlert.detach();
             //notificationAlert.setAutoHide(true);
@@ -362,9 +366,19 @@ public class NotificationController {
     }
 
     /**
-     * Helper method that hides the notification Alert
+     * Hides bubble instantly, as well as stops any task that may be trying to hide it later
      */
     private synchronized void hideBubble() {
+        if (hideBubbleTask != null) hideBubbleTask.cancel();
         if(notificationAlert != null) notificationAlert.hide();
     }
+
+    /**
+     * Hides bubble instantly, as well as stops any task that may be trying to hide it later
+     */
+    public synchronized void hideBubbleInstantly() {
+        if (hideBubbleTask != null) hideBubbleTask.cancel();
+        if(notificationAlert != null) notificationAlert.hide(Duration.ZERO);
+    }
+
 }

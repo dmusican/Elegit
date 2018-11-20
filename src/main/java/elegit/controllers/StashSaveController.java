@@ -54,6 +54,9 @@ public class StashSaveController {
         stage.setOnCloseRequest(event -> {
             logger.info("Closed stash save window");
         });
+        stage.setOnHiding(e -> {
+            notificationPaneController.hideBubbleInstantly();
+        });
         stage.show();
         this.notificationPaneController.setAnchor(stage);
     }

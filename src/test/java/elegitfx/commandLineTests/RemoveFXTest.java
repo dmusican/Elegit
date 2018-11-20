@@ -70,7 +70,8 @@ public class RemoveFXTest extends ApplicationTest {
         WorkingTreePanelView workingTree = lookup("#workingTreePanelView").query();
         interact(workingTree::checkSelectAll);
 
-        clickOn("#removeButton");
+        clickOn("#removeButton")
+                .clickOn("OK");
 
         commandLineTestUtilities.checkCommandLineText("git rm README.md");
     }

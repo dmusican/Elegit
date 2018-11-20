@@ -182,6 +182,9 @@ public class MergeWindowController {
         stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed merge window"));
+        stage.setOnHiding(e -> {
+            notificationPaneController.hideBubbleInstantly();
+        });
         stage.show();
         if(localTabOpen) mergeTypePane.getSelectionModel().select(localBranchTab);
         this.notificationPaneController.setAnchor(stage);

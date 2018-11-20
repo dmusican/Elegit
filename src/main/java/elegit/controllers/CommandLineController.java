@@ -38,9 +38,6 @@ public class CommandLineController {
 
     private boolean allowUpdates = true;
 
-    // Used for testing that the updateCommandText method has run before checking the text in currentCommand
-    public static final AtomicBoolean methodCalled = new AtomicBoolean(false);
-
     private static final Logger logger = LogManager.getLogger();
 
     public synchronized void setSessionController(SessionController sessionController) {
@@ -69,8 +66,6 @@ public class CommandLineController {
             currentCommand.setText(command);
             setTextAreaWidth();
         }
-        // The text in currentCommand can now be tested
-        methodCalled.set(true);
     }
 
     /*
@@ -175,11 +170,4 @@ public class CommandLineController {
         currentCommand.copy();
     }
 
-    public static boolean getMethodCalled() {
-        return methodCalled.get();
-    }
-
-    public static void setMethodCalled(boolean value) {
-        methodCalled.set(value);
-    }
 }
