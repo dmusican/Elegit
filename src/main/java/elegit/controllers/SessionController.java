@@ -979,6 +979,7 @@ public class SessionController {
             return Collections.unmodifiableList(results);
         }
     }
+
     /**
      * Removes all files from staging area that are selected if they can be removed
      */
@@ -994,42 +995,32 @@ public class SessionController {
 
             showBusyWindow("Removing...");
 
-            // TODO: this needs to be threaded differently because it calls multiple methods that need to be in the FX thread
-//            Thread th = new Thread(new Task<Void>(){
-//                @Override
-//                protected Void call() {
-                    try{
-                        ArrayList<Path> filePathsToRemove = new ArrayList<>();
-                        ArrayList<String> fileNames = new ArrayList<>();
-                        // Try to remove all files, throw exception if there are ones that can't be added
-                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                            if (checkedFile.canRemove()) {
-                                filePathsToRemove.add(checkedFile.getFilePath());
-                                fileNames.add(checkedFile.getFilePath().toString());
-                            }
-                            else
-                                throw new UnableToRemoveException(checkedFile.getFilePath().toString());
-                        }
-
-                        theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
-                        gitStatus();
-                        commandLineController.updateCommandText("git rm " + String.join(" ", fileNames));
-
-                    } catch(JGitInternalException e){
-                        showJGitInternalError(e);
-                    } catch (UnableToRemoveException e) {
-                        showCannotRemoveFileNotification(e.getFilename());
-                    } catch (GitAPIException e) {
-                        showGenericErrorNotification(e);
-                    } finally {
-                        BusyWindow.hide();
+            try{
+                ArrayList<Path> filePathsToRemove = new ArrayList<>();
+                ArrayList<String> fileNames = new ArrayList<>();
+                // Try to remove all files, throw exception if there are ones that can't be added
+                for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                    if (checkedFile.canRemove()) {
+                        filePathsToRemove.add(checkedFile.getFilePath());
+                        fileNames.add(checkedFile.getFilePath().toString());
                     }
-//                    return null;
-//                }
-//            });
-//            th.setDaemon(true);
-//            th.setName("Git rm");
-//            th.start();
+                    else
+                        throw new UnableToRemoveException(checkedFile.getFilePath().toString());
+                }
+
+                theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
+                gitStatus();
+                commandLineController.updateCommandText("git rm " + String.join(" ", fileNames));
+
+            } catch(JGitInternalException e){
+                showJGitInternalError(e);
+            } catch (UnableToRemoveException e) {
+                showCannotRemoveFileNotification(e.getFilename());
+            } catch (GitAPIException e) {
+                showGenericErrorNotification(e);
+            } finally {
+                BusyWindow.hide();
+            }
         } catch (NoFilesSelectedToRemoveException e) {
             this.showNoFilesSelectedForRemoveNotification();
         } catch (NoRepoLoadedException e) {
