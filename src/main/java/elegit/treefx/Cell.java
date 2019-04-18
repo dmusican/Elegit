@@ -477,7 +477,7 @@ public class Cell extends Pane {
                 n.setFill(baseColor);
                 break;
             case REMOTE:
-                n.setFill(Color.web(BACKGROUND_COLOR));
+                n.setFill(baseColor);
                 n.setStrokeWidth(1.5);
                 n.setStroke(Color.GRAY);
                 break;
