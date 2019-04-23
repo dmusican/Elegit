@@ -14,11 +14,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 
+
 import java.util.*;
+import java.net.URI;
 
 /**
  * Class that initializes a given pop up window. Essentially both a view and controller for pop up windows.
@@ -288,7 +291,7 @@ public class PopUpWindows {
     /**
      * Show a window with info about git revert
      */
-    public static void showRevertHelpAlert() {
+    public static void showRevertHelpAlert(){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.getDialogPane().setPrefWidth(500);
         alert.setTitle("Revert Help");
@@ -297,11 +300,21 @@ public class PopUpWindows {
         img.setFitHeight(60);
         img.setFitWidth(60);
         alert.setGraphic(img);
+
         alert.setContentText("Basically, git revert takes your current files, " +
                 "and deletes any changes from the commit(s) you give it, making a new commit. " +
-                "See\n\nhttp://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html\n\n" +
-                "for more information");
-        alert.showAndWait();
+                "Click on the Revert Help button to go to a web page for more information.");
+
+        ButtonType buttonHelp = new ButtonType("Revert Help");
+        alert.getButtonTypes().add(buttonHelp);
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == buttonHelp) {
+            try {
+                java.awt.Desktop.getDesktop().browse(
+                        new URI("http://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html"));
+            } catch (Exception e) {
+            }
+        }
     }
 
     /**
