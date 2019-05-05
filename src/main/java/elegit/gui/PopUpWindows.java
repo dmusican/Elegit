@@ -3,6 +3,7 @@ package elegit.gui;
 import elegit.Main;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
+import elegit.exceptions.ExceptionAdapter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -22,6 +23,7 @@ import org.controlsfx.control.CheckListView;
 
 import java.util.*;
 import java.net.URI;
+import java.awt.Desktop;
 
 /**
  * Class that initializes a given pop up window. Essentially both a view and controller for pop up windows.
@@ -310,9 +312,10 @@ public class PopUpWindows {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == buttonHelp) {
             try {
-                java.awt.Desktop.getDesktop().browse(
+                Desktop.getDesktop().browse(
                         new URI("http://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html"));
-            } catch (Exception e) {
+            } catch (Exception ignored) {
+                throw new ExceptionAdapter(ignored);
             }
         }
     }
