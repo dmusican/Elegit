@@ -472,13 +472,16 @@ public class Cell extends Pane {
     // it is critical that this method not be used on a Cell that is already on the scene graph from off thread.
     public synchronized void setFillType(Shape n, CellState state) {
         Color baseColor = Color.web(state.getBackgroundColor());
-        //Color remoteBaseColor = Color.web(BACKGROUND_COLOR);
         switch(this.localOrRemote) {
             case LOCAL:
                 n.setFill(baseColor);
                 break;
             case REMOTE:
-                n.setFill(baseColor);
+                if (state == CellState.STANDARD) {
+                    n.setFill(Color.web(BACKGROUND_COLOR));
+                } else {
+                    n.setFill(baseColor);
+                }
                 n.setStrokeWidth(1.5);
                 n.setStroke(Color.GRAY);
                 break;
