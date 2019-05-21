@@ -12,10 +12,12 @@ import javafx.scene.control.Dialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
@@ -306,16 +308,27 @@ public class PopUpWindows {
         alert.setContentText("Basically, git revert takes your current files, " +
                 "and deletes any changes from the commit(s) you give it, making a new commit. " +
                 "Click on the Revert Help button to go to a web page for more information.");
-
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         ButtonType buttonHelp = new ButtonType("Revert Help");
         alert.getButtonTypes().add(buttonHelp);
         Optional<ButtonType> result = alert.showAndWait();
+        String helpURL = "http://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html";
         if (result.get() == buttonHelp) {
             try {
-                Desktop.getDesktop().browse(
-                        new URI("http://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html"));
-            } catch (Exception ignored) {
-                throw new ExceptionAdapter(ignored);
+                // https://stackoverflow.com/a/55122871/490329
+                if (SystemUtils.IS_OS_LINUX) {
+                    // Workaround for Linux because "Desktop.getDesktop().browse()" doesn't work on some Linux implementations
+                    if (Runtime.getRuntime().exec(new String[]{"which", "xdg-open"}).getInputStream().read() != -1) {
+                        Runtime.getRuntime().exec(new String[]{"xdg-open", helpURL});
+                    } else {
+                        throw new RuntimeException("Can't open URL: on Linux and xdg-open not available.");
+                    }
+                } else {
+                    Desktop.getDesktop().browse(
+                            new URI("http://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html"));
+                }
+            } catch (Exception e) {
+                throw new ExceptionAdapter(e);
             }
         }
     }
