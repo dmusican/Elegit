@@ -3,6 +3,7 @@ package elegit.gui;
 import elegit.Main;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
+import elegit.exceptions.ExceptionAdapter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -11,14 +12,20 @@ import javafx.scene.control.Dialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 
+
 import java.util.*;
+import java.net.URI;
+import java.awt.Desktop;
 
 /**
  * Class that initializes a given pop up window. Essentially both a view and controller for pop up windows.
@@ -288,7 +295,7 @@ public class PopUpWindows {
     /**
      * Show a window with info about git revert
      */
-    public static void showRevertHelpAlert() {
+    public static void showRevertHelpAlert(){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.getDialogPane().setPrefWidth(500);
         alert.setTitle("Revert Help");
@@ -297,11 +304,33 @@ public class PopUpWindows {
         img.setFitHeight(60);
         img.setFitWidth(60);
         alert.setGraphic(img);
+
         alert.setContentText("Basically, git revert takes your current files, " +
                 "and deletes any changes from the commit(s) you give it, making a new commit. " +
-                "See\n\nhttp://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html\n\n" +
-                "for more information");
-        alert.showAndWait();
+                "Click on the Revert Help button to go to a web page for more information.");
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        ButtonType buttonHelp = new ButtonType("Revert Help");
+        alert.getButtonTypes().add(buttonHelp);
+        Optional<ButtonType> result = alert.showAndWait();
+        String helpURL = "http://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html";
+        if (result.get() == buttonHelp) {
+            try {
+                // https://stackoverflow.com/a/55122871/490329
+                if (SystemUtils.IS_OS_LINUX) {
+                    // Workaround for Linux because "Desktop.getDesktop().browse()" doesn't work on some Linux implementations
+                    if (Runtime.getRuntime().exec(new String[]{"which", "xdg-open"}).getInputStream().read() != -1) {
+                        Runtime.getRuntime().exec(new String[]{"xdg-open", helpURL});
+                    } else {
+                        throw new RuntimeException("Can't open URL: on Linux and xdg-open not available.");
+                    }
+                } else {
+                    Desktop.getDesktop().browse(
+                            new URI("http://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html"));
+                }
+            } catch (Exception e) {
+                throw new ExceptionAdapter(e);
+            }
+        }
     }
 
     /**
