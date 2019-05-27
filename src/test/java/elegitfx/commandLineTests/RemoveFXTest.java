@@ -1,6 +1,5 @@
 package elegitfx.commandLineTests;
 
-import com.sun.javafx.robot.FXRobot;
 import elegit.controllers.SessionController;
 import elegit.gui.WorkingTreePanelView;
 import javafx.scene.input.MouseButton;

@@ -1,6 +1,5 @@
 package elegit.gui;
 
-import com.sun.javafx.scene.control.skin.TextFieldSkin;
 import elegit.Main;
 import elegit.models.AuthMethod;
 import elegit.models.RepoHelper;
@@ -12,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.skin.TextFieldSkin;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 import elegit.exceptions.CancelledAuthorizationException;

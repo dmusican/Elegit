@@ -1,15 +1,11 @@
 package elegit.controllers;
 
 import elegit.*;
-import elegit.exceptions.ExceptionAdapter;
-import elegit.gui.WorkingTreePanelView;
 import elegit.models.BranchModel;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.ConflictingFileWatcher;
-import elegit.repofile.ConflictingRepoFile;
-import elegit.repofile.RepoFile;
 import elegit.treefx.CellLabel;
 import elegit.models.BranchHelper;
 import javafx.application.Platform;
@@ -30,14 +26,7 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
-import org.omg.CORBA.Object;
-
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Set;
-import java.util.HashMap;
-import java.util.ArrayList;
 
 /**
  * Controller for the merge window
