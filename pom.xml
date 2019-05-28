@@ -89,7 +89,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.2</version>
                 <configuration>
-                    <mainClass>elegit/Main</mainClass>
+                    <mainClass>elegit.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>

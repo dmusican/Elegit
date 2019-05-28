@@ -27,7 +27,6 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,6 +36,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -661,15 +661,7 @@ public class SessionModel {
             throw new RuntimeException(e);
         }
         md.update(pathname.getBytes());
-        String prefKey;
-        //try {
-            //prefKey = new String(md.digest(), "US-ASCII");
-            prefKey = DatatypeConverter.printHexBinary(md.digest());
-            //prefKey = "hello";
-//        } catch (UnsupportedEncodingException e) {
-//            throw new RuntimeException(e);
-//        }
-        return prefKey;
+        return Base64.getUrlEncoder().encodeToString(md.digest());
     }
 
     // synchronized for allRepoHelpers
