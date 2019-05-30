@@ -1499,73 +1499,64 @@ public class SessionController {
         }
     }
 
-    synchronized void deleteRemoteBranch(BranchHelper selectedBranch, BranchModel branchModel, Consumer<String> updateFn) {
-        try {
-            final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
-
-            showBusyWindow("Deleting remote branch...");
-            RemoteBranchHelper remote = (RemoteBranchHelper) selectedBranch;
-            commandLineController.updateCommandText("git push origin --delete " + remote.parseBranchName());
-
-            Thread th = new Thread(new Task<Void>() {
-                @Override
-                protected Void call() {
-                    tryCommandAgainWithHTTPAuth = false;
-                    try {
-                        deleteRemoteBranchDetails(credentialResponse, selectedBranch, branchModel, updateFn);
-                    } catch (TransportException e) {
-                        determineIfTryAgain(e);
-                    } finally {
-                        BusyWindow.hide();
-                    }
-
-                    if (tryCommandAgainWithHTTPAuth) {
-                        Platform.runLater(() -> {
-                            deleteRemoteBranch(selectedBranch, branchModel, updateFn);
-                        });
-                    }
-
-                    return null;
+    private List<Result> deleteRemoteBranchDetails(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, BranchHelper selectedBranch,
+                                                   BranchModel branchModel, Consumer<String> updateFn) {
+        Main.assertNotFxThread();
+        synchronized (globalLock) {
+            List<Result> results = new ArrayList<>();
+            try {
+                RepoHelper helper = theModel.getCurrentRepoHelper();
+                responseOptional.ifPresent(response ->
+                        helper.setOwnerAuth(
+                                new UsernamePasswordCredentialsProvider(response.username, response.password))
+                );
+                RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
+                String updateMessage = selectedBranch.getRefName();
+                switch (deleteStatus) {
+                    case OK:
+                        updateMessage += " deleted.";
+                        break;
+                    case NON_EXISTING:
+                        updateMessage += " no longer\nexists on the server.\nFetch -p to remove " + updateMessage;
+                    default:
+                        updateMessage += " deletion\nfailed.";
                 }
-            });
-            th.setDaemon(true);
-            th.setName("Git delete remote branch");
-            th.start();
+                updateFn.accept(updateMessage);
 
-        } catch (CancelledAuthorizationException e) {
-            this.showCommandCancelledNotification();
+
+            } catch (TransportException e) {
+                results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.DELETE, e));
+            }
+            catch (GitAPIException e) {
+                logger.warn("IO error");
+                this.showGenericErrorNotification(e);
+            }
+            return Collections.unmodifiableList(results);
         }
     }
 
-    private void deleteRemoteBranchDetails(RepoHelperBuilder.AuthDialogResponse response, BranchHelper selectedBranch,
-                                           BranchModel branchModel, Consumer<String> updateFn) throws TransportException {
 
-        try {
-            if (response != null) {
-                theModel.getCurrentRepoHelper().setOwnerAuth(
-                        new UsernamePasswordCredentialsProvider(response.username, response.password));
-            }
-            RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
-            String updateMessage = selectedBranch.getRefName();
-            // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
-            // for the full list.
-            switch (deleteStatus) {
-                case OK:
-                    updateMessage += " deleted.";
-                    break;
-                case NON_EXISTING:
-                    updateMessage += " no longer\nexists on the server.\nFetch -p to remove " + updateMessage;
-                default:
-                    updateMessage += " deletion\nfailed.";
-            }
-            updateFn.accept(updateMessage);
-        } catch (TransportException e) {
-            throw e;
-        } catch (GitAPIException e) {
-            logger.warn("IO error");
-            this.showGenericErrorNotification(e);
-        }
+
+    public void deleteRemoteBranch(BranchHelper selectedBranch, BranchModel branchModel, Consumer<String> updateFn) {
+        GitOperation gitOp = authResponse -> deleteRemoteBranchDetails(authResponse, selectedBranch, branchModel, updateFn);
+        Single
+                .fromCallable(() -> {
+                    showBusyWindow("Deleting remote branch...");
+                    RemoteBranchHelper remote = (RemoteBranchHelper) selectedBranch;
+                    commandLineController.updateCommandText("git push origin --delete " + remote.parseBranchName());
+                    return true;
+                })
+
+                // Note that the below is a threaded operation, and so we want to make sure that the following
+                // operations (hiding the window, etc) depend on it.
+                .flatMap(unused -> doGitOperationWhenSubscribed(gitOp))
+                .doOnSuccess(unused -> hideBusyWindowAndResumeRepoMonitor())
+                .flatMap(unused -> doGitStatusWhenSubscribed())
+                .subscribe(unused -> {
+                }, Throwable::printStackTrace);
     }
+
+
 
 
     /**
@@ -1831,7 +1822,7 @@ public class SessionController {
     }
 
     public enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED, CONFLICTING};
-    public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES, RESET, REVERT};
+    public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES, RESET, REVERT, DELETE};
 
     public static class Result {
         public final ResultStatus status;
