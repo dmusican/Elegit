@@ -2,14 +2,15 @@
   <configuration default="false" name="Main (shared)" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="elegit.Main" />
     <module name="Elegit" />
-    <option name="VM_PARAMETERS" value="-Dsun.awt.disablegrab=true " />
-    <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    <option name="VM_PARAMETERS" value="-Dsun.awt.disablegrab=true --module-path /opt/javafx-sdk-11.0.2/lib --add-modules javafx.controls,javafx.fxml" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="elegit.monitors.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
-    <method />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
   </configuration>
 </component>
