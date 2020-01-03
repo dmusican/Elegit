@@ -32,7 +32,6 @@ import java.util.TimerTask;
 public class NotificationController {
 
     private final static int MIN_SCROLLPANE_HEIGHT = 20;
-    private final static int BUTTON_WIDTH = 85;
 
     // FXML elements
     @FXML StackPane notificationPane;
@@ -66,8 +65,9 @@ public class NotificationController {
         this.resizeLine.setOnMouseDragged(this::handleLineDragged);
         this.minimizeButton.setOnMouseClicked(event -> hideNotificationList());
 
-        this.minimizeButton.boundsInParentProperty().addListener((observable, oldValue, newValue) ->
-                this.resizeLine.setEndX(newValue.getMinX()+BUTTON_WIDTH));
+        this.notificationListPane.widthProperty().addListener((observable, oldValue, newValue) ->
+                                                                  this.resizeLine.setEndX(100d));
+
         this.separatorLine.endXProperty().bind(this.resizeLine.endXProperty());
 
         this.notificationListUI.setPickOnBounds(false);
