@@ -176,7 +176,7 @@ public class MergeWindowController {
         });
         stage.show();
         if(localTabOpen) mergeTypePane.getSelectionModel().select(localBranchTab);
-        this.notificationPaneController.setAnchor(stage);
+        this.notificationPaneController.initFromStage(stage);
     }
 
     /**

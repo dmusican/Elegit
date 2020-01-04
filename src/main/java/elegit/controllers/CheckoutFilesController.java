@@ -78,7 +78,7 @@ public class CheckoutFilesController {
             notificationPaneController.hideBubbleInstantly();
         });
         stage.show();
-        this.notificationPaneController.setAnchor(stage);
+        this.notificationPaneController.initFromStage(stage);
     }
 
     /**

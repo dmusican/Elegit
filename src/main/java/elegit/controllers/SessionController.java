@@ -59,13 +59,11 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.lib.Config;
-import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
 import java.io.IOException;
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -345,7 +343,7 @@ public class SessionController {
      * @param stage Stage
      */
     public void setStageForNotifications(Stage stage) {
-        notificationPaneController.setAnchor(stage);
+        notificationPaneController.initFromStage(stage);
         stage.setOnHiding(e -> {
             notificationPaneController.hideBubbleInstantly();
         });

@@ -58,7 +58,7 @@ public class StashSaveController {
             notificationPaneController.hideBubbleInstantly();
         });
         stage.show();
-        this.notificationPaneController.setAnchor(stage);
+        this.notificationPaneController.initFromStage(stage);
     }
 
     /* ********************** BUTTON HANDLERS ********************** */

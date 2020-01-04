@@ -188,7 +188,7 @@ public class CreateDeleteBranchWindowController {
         if(tab.equals("create")) tabPane.getSelectionModel().select(createTab);
         if(tab.equals("local")) tabPane.getSelectionModel().select(deleteLocalTab);
         if(tab.equals("remote")) tabPane.getSelectionModel().select(deleteRemoteTab);
-        this.notificationPaneController.setAnchor(stage);
+        this.notificationPaneController.initFromStage(stage);
     }
 
     /**

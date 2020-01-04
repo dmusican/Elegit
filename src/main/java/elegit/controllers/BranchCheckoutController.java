@@ -104,7 +104,7 @@ public class BranchCheckoutController {
             notificationPaneController.hideBubbleInstantly();
         });
         stage.show();
-        this.notificationPaneController.setAnchor(stage);
+        this.notificationPaneController.initFromStage(stage);
     }
 
     /**

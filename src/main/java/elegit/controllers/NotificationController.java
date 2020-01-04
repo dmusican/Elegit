@@ -65,9 +65,6 @@ public class NotificationController {
         this.resizeLine.setOnMouseDragged(this::handleLineDragged);
         this.minimizeButton.setOnMouseClicked(event -> hideNotificationList());
 
-        this.notificationListPane.widthProperty().addListener((observable, oldValue, newValue) ->
-                                                                  this.resizeLine.setEndX(100d));
-
         this.separatorLine.endXProperty().bind(this.resizeLine.endXProperty());
 
         this.notificationListUI.setPickOnBounds(false);
@@ -76,12 +73,12 @@ public class NotificationController {
         this.notificationNum.setPickOnBounds(false);
 
         this.notificationAlert = new PopOver();
-
-
     }
 
-    public synchronized void setAnchor(Stage stage) {
+    public synchronized void initFromStage(Stage stage) {
         this.anchor = stage;
+        this.anchor.widthProperty().addListener((observable, oldValue, newValue) ->
+                                                                  this.resizeLine.setEndX(anchor.getWidth()));
     }
 
     /**

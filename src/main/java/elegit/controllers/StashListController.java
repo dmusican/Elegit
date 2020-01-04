@@ -97,7 +97,7 @@ public class StashListController {
             notificationPaneController.hideBubbleInstantly();
         });
         stage.show();
-        this.notificationPaneController.setAnchor(stage);
+        this.notificationPaneController.initFromStage(stage);
     }
 
     /**

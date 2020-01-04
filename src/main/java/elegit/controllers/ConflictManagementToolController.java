@@ -12,8 +12,6 @@ import elegit.models.ConflictLine;
 import io.reactivex.Completable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -298,7 +296,7 @@ public class ConflictManagementToolController {
             notificationPaneController.hideBubbleInstantly();
         });
         stage.show();
-        notificationPaneController.setAnchor(stage);
+        notificationPaneController.initFromStage(stage);
     }
 
     @FXML
