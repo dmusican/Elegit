@@ -73,6 +73,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -620,7 +622,6 @@ public class SessionController {
             showGenericErrorNotification(e);
             console.info("Exception thrown: " + e);
         }
-
         return Single.just(true);
     }
 
@@ -683,13 +684,19 @@ public class SessionController {
                     }
                 })
                 .subscribeOn(Schedulers.io())
-
                 .observeOn(JavaFxScheduler.platform())
+                .onErrorResumeNext(error -> {
+                    if (error instanceof TransportException) {
+                        notificationPaneController.addNotification("Remote timed out. Bad network connection?");
+                        return Single.just(Optional.empty());
+                    } else {
+                        throw new ExceptionAdapter(error);
+                    }
+                })
                 .map(refs -> {
                     if (refs.isPresent()) {
                         theModel.getCurrentRepoHelper().setRemoteStatusChecking(true);
                     }
-
                     return true;
                 });
     }

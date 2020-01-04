@@ -100,7 +100,6 @@ public class CommitTreeModel{
      */
     public synchronized Single<Boolean> initializeModelForNewRepoWhenSubscribed(){
         Main.assertFxThread();
-
         CommitTreeController.resetSelection();
 
         if (SessionModel.getSessionModel().getCurrentRepoHelper() != null) {

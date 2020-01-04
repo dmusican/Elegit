@@ -67,6 +67,8 @@ public class RepoHelper {
     private static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
+    private static final int REMOTE_TIMEOUT_SECS = 10;
+
     // This is a JavaFX property, so this is thread safe in that it will only be changed in the FX thread.
     // This is critical to do because it will be bound to a JavaFX object.
     @GuardedBy("this")
@@ -1371,6 +1373,7 @@ public class RepoHelper {
         if (includeTags) {
             command = command.setTags(includeTags);
         }
+        command.setTimeout(REMOTE_TIMEOUT_SECS);
         wrapAuthentication(command);
         Collection<Ref> remoteRefs = threadsafeGitManager.get().getRefsFromRemote(command);
         return Collections.unmodifiableCollection(remoteRefs);
