@@ -36,12 +36,14 @@ public class StagedTreePanelView extends FileStructurePanelView{
      */
     @Override
     protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
-        return arg -> new RepoFileTreeCell();
+//        return arg -> new RepoFileTreeCell();
+        return null;
     }
 
     @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
-        return new TreeItem<>(rootDirectory);
+//        return new TreeItem<>(rootDirectory);
+        return null;
     }
 
     /**
@@ -49,49 +51,48 @@ public class StagedTreePanelView extends FileStructurePanelView{
      * directory of the current repository as the root. Subsequent calls to this method
      * will update the items in place
      * @param repoFiles the files to add to the tree
-     * @param root the root of the tree
      */
     @Override
-    protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root){
+    protected void addTreeItemsToRoot(List<RepoFile> repoFiles){
         Main.assertFxThread();
 
-        // Track all current files to make sure they should still be displayed
-        Map<TreeItem<RepoFile>, Boolean> shouldKeepChild = new HashMap<>();
-        for(TreeItem<RepoFile> treeItem : root.getChildren()){
-            shouldKeepChild.put(treeItem, false);
-        }
-
-        for (RepoFile repoFile : repoFiles) {
-            TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, null);
-            boolean foundMatchingItem = false;
-
-            for (int i = 0; i < root.getChildren().size(); i++) {
-                TreeItem<RepoFile> oldItem = root.getChildren().get(i);
-                if (oldItem.equals(repoFile)) {
-                    // Check if the file already exists
-                    foundMatchingItem = true;
-                    shouldKeepChild.put(oldItem, true);
-                } else if (oldItem.getValue().getFilePath().equals(repoFile.getFilePath())) {
-                    // File exists but is updated
-                    root.getChildren().set(i, newItem);
-                    foundMatchingItem = true;
-                    shouldKeepChild.put(oldItem, true);
-                }
-            }
-
-            // The file wasn't being displayed, so add it
-            if(!foundMatchingItem){
-                root.getChildren().add(newItem);
-                shouldKeepChild.put(newItem, true);
-            }
-        }
-
-        // Remove all elements that shouldn't be displayed
-        for(TreeItem item : shouldKeepChild.keySet()){
-            if (!shouldKeepChild.get(item)) {
-                root.getChildren().remove(item);
-            }
-        }
+//        // Track all current files to make sure they should still be displayed
+//        Map<TreeItem<RepoFile>, Boolean> shouldKeepChild = new HashMap<>();
+//        for(TreeItem<RepoFile> treeItem : root.getChildren()){
+//            shouldKeepChild.put(treeItem, false);
+//        }
+//
+//        for (RepoFile repoFile : repoFiles) {
+//            TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, null);
+//            boolean foundMatchingItem = false;
+//
+//            for (int i = 0; i < root.getChildren().size(); i++) {
+//                TreeItem<RepoFile> oldItem = root.getChildren().get(i);
+//                if (oldItem.equals(repoFile)) {
+//                    // Check if the file already exists
+//                    foundMatchingItem = true;
+//                    shouldKeepChild.put(oldItem, true);
+//                } else if (oldItem.getValue().getFilePath().equals(repoFile.getFilePath())) {
+//                    // File exists but is updated
+//                    root.getChildren().set(i, newItem);
+//                    foundMatchingItem = true;
+//                    shouldKeepChild.put(oldItem, true);
+//                }
+//            }
+//
+//            // The file wasn't being displayed, so add it
+//            if(!foundMatchingItem){
+//                root.getChildren().add(newItem);
+//                shouldKeepChild.put(newItem, true);
+//            }
+//        }
+//
+//        // Remove all elements that shouldn't be displayed
+//        for(TreeItem item : shouldKeepChild.keySet()){
+//            if (!shouldKeepChild.get(item)) {
+//                root.getChildren().remove(item);
+//            }
+//        }
     }
 
     /**
@@ -102,12 +103,13 @@ public class StagedTreePanelView extends FileStructurePanelView{
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException {
         Main.assertFxThread();
-        List<RepoFile> repoFiles = new ArrayList<>();
-        for (RepoFile file : SessionModel.getSessionModel().getAllChangedRepoFiles()) {
-            if (file instanceof StagedRepoFile || file instanceof StagedAndModifiedRepoFile)
-                repoFiles.add(file);
-        }
-        return repoFiles;
+//        List<RepoFile> repoFiles = new ArrayList<>();
+//        for (RepoFile file : SessionModel.getSessionModel().getAllChangedRepoFiles()) {
+//            if (file instanceof StagedRepoFile || file instanceof StagedAndModifiedRepoFile)
+//                repoFiles.add(file);
+//        }
+//        return repoFiles;
+        return null;
     }
 
     /**
