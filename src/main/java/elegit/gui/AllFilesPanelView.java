@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 // MOREOVER, there is extensive use of bindings and listeners here, which must happen on the FX thread.
 public class AllFilesPanelView extends FileStructurePanelView {
 
-//    private final Map<Path, TreeItem<RepoFile>> itemMap = new ConcurrentHashMap<>();
+    private final Map<Path, TreeItem<RepoFile>> itemMap = new ConcurrentHashMap<>();
 
     public AllFilesPanelView() {
         Main.assertFxThread();
@@ -39,7 +39,7 @@ public class AllFilesPanelView extends FileStructurePanelView {
     @Override
     public void init() {
         Main.assertFxThread();
-//        itemMap.clear();
+        itemMap.clear();
         super.init();
     }
 
@@ -50,15 +50,13 @@ public class AllFilesPanelView extends FileStructurePanelView {
     @Override
     protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
         Main.assertFxThread();
-//        return arg -> new RepoFileTreeCell();
-        return null;
+        return arg -> new RepoFileTreeCell();
     }
 
     @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
         Main.assertFxThread();
-//        return new TreeItem<>(rootDirectory);
-        return null;
+        return new TreeItem<>(rootDirectory);
     }
 
     /**
@@ -66,95 +64,96 @@ public class AllFilesPanelView extends FileStructurePanelView {
      * base directory of the current repository as the root. Subsequent calls to this method
      * will update the items in place
      * @param repoFiles the files to add to the tree
+     * @param root the root of the tree
      */
     @Override
-    protected void addTreeItemsToRoot(List<RepoFile> repoFiles){
+    protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root){
         // DRM: some of this will undoubtedly need to be threaded, but its safety needs to be carefully thought
         // given the FX work done. For now, insist in FX thread.
         Main.assertFxThread();
-//
-//        // To ensure files are added after their parents, sort the given files into lists
-//        // based on their respective depths in the file structure
-//        Map<Integer, List<RepoFile>> filesAtDepthMap = new HashMap<>();
-//        int maxDepth = 0;
-//        for(RepoFile repoFile : repoFiles){
-//            int depthInRepo = repoFile.getLevelInRepository();
-//
-//            if(depthInRepo > maxDepth) maxDepth=depthInRepo;
-//
-//            if(!filesAtDepthMap.containsKey(depthInRepo)){
-//                List<RepoFile> list = new LinkedList<>();
-//                list.add(repoFile);
-//                filesAtDepthMap.put(depthInRepo, list);
-//            }else{
-//                filesAtDepthMap.get(depthInRepo).add(repoFile);
-//            }
-//        }
-//
-//        // Track all currently displayed files to make sure they are still valid
-//        Set<TreeItem<RepoFile>> itemsToRemove = new HashSet<>();
-//        itemsToRemove.addAll(itemMap.values());
-//
-//        // Loop through files at each depth
-//        for(int i = 0; i < maxDepth + 1; i++) {
-//            List<RepoFile> filesAtDepth = filesAtDepthMap.get(i);
-//            if(filesAtDepth != null) {
-//                for (RepoFile repoFile : filesAtDepth) {
-//                    Path pathToFile = repoFile.getFilePath();
-//
-//                    // Check if there is already a record of this file
-//                    if (itemMap.containsKey(pathToFile)) {
-//                        TreeItem<RepoFile> oldItem = itemMap.get(pathToFile);
-//
-//                        if (oldItem.getValue().equals(repoFile)) {
-//                            // The given file is already present, no additional processing needed
-//                            itemsToRemove.remove(oldItem);
-//                        } else {
-//                            // The file is displayed, but needs its status updated. Replace the old with the new
-//                            CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.getDiffButton());
-//                            TreeItem<RepoFile> parent = oldItem.getParent();
-//                            newItem.setExpanded(oldItem.isExpanded());
-//                            newItem.getChildren().setAll(oldItem.getChildren());
-//                            parent.getChildren().set(parent.getChildren().indexOf(oldItem), newItem);
-//                            itemsToRemove.remove(oldItem);
-//                            itemMap.put(pathToFile, newItem);
-//                        }
-//                    } else {
-//                        // The given file wasn't present, so need to add it
-//                        CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.getDiffButton());
-//
-//                        Path pathToParent = pathToFile.getParent();
-//                        boolean foundParent = false;
-//                        // Make sure this new item is properly inserted as a child to its parent
-//                        while (pathToParent != null && !root.getValue().getFilePath().equals(pathToParent)) {
-//                            if (itemMap.containsKey(pathToParent)) {
-//                                TreeItem<RepoFile> parent = itemMap.get(pathToParent);
-//                                //Platform.runLater(() ->
-//                                        parent.getChildren().add(newItem);
-//                                //);
-//                                foundParent = true;
-//                                break;
-//                            }
-//                            pathToParent = pathToParent.getParent();
-//                        }
-//                        // If no parent is found, we can assume it belongs to the root
-//                        if (!foundParent) {
-//                            root.getChildren().add(newItem);
-//                        }
-//                        itemMap.put(pathToFile, newItem);
-//                        itemsToRemove.remove(newItem);
-//                    }
-//                }
-//            }
-//        }
-//
-//        // Remove all elements that shouldn't be displayed
-//        for (TreeItem<RepoFile> item : itemsToRemove) {
-//            //Platform.runLater(() -> {
-//                if(item.getParent() != null) item.getParent().getChildren().remove(item);
-//            //});
-//            itemMap.remove(item.getValue().getFilePath());
-//        }
+
+        // To ensure files are added after their parents, sort the given files into lists
+        // based on their respective depths in the file structure
+        Map<Integer, List<RepoFile>> filesAtDepthMap = new HashMap<>();
+        int maxDepth = 0;
+        for(RepoFile repoFile : repoFiles){
+            int depthInRepo = repoFile.getLevelInRepository();
+
+            if(depthInRepo > maxDepth) maxDepth=depthInRepo;
+
+            if(!filesAtDepthMap.containsKey(depthInRepo)){
+                List<RepoFile> list = new LinkedList<>();
+                list.add(repoFile);
+                filesAtDepthMap.put(depthInRepo, list);
+            }else{
+                filesAtDepthMap.get(depthInRepo).add(repoFile);
+            }
+        }
+
+        // Track all currently displayed files to make sure they are still valid
+        Set<TreeItem<RepoFile>> itemsToRemove = new HashSet<>();
+        itemsToRemove.addAll(itemMap.values());
+
+        // Loop through files at each depth
+        for(int i = 0; i < maxDepth + 1; i++) {
+            List<RepoFile> filesAtDepth = filesAtDepthMap.get(i);
+            if(filesAtDepth != null) {
+                for (RepoFile repoFile : filesAtDepth) {
+                    Path pathToFile = repoFile.getFilePath();
+
+                    // Check if there is already a record of this file
+                    if (itemMap.containsKey(pathToFile)) {
+                        TreeItem<RepoFile> oldItem = itemMap.get(pathToFile);
+
+                        if (oldItem.getValue().equals(repoFile)) {
+                            // The given file is already present, no additional processing needed
+                            itemsToRemove.remove(oldItem);
+                        } else {
+                            // The file is displayed, but needs its status updated. Replace the old with the new
+                            CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.getDiffButton());
+                            TreeItem<RepoFile> parent = oldItem.getParent();
+                            newItem.setExpanded(oldItem.isExpanded());
+                            newItem.getChildren().setAll(oldItem.getChildren());
+                            parent.getChildren().set(parent.getChildren().indexOf(oldItem), newItem);
+                            itemsToRemove.remove(oldItem);
+                            itemMap.put(pathToFile, newItem);
+                        }
+                    } else {
+                        // The given file wasn't present, so need to add it
+                        CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.getDiffButton());
+
+                        Path pathToParent = pathToFile.getParent();
+                        boolean foundParent = false;
+                        // Make sure this new item is properly inserted as a child to its parent
+                        while (pathToParent != null && !root.getValue().getFilePath().equals(pathToParent)) {
+                            if (itemMap.containsKey(pathToParent)) {
+                                TreeItem<RepoFile> parent = itemMap.get(pathToParent);
+                                //Platform.runLater(() ->
+                                        parent.getChildren().add(newItem);
+                                //);
+                                foundParent = true;
+                                break;
+                            }
+                            pathToParent = pathToParent.getParent();
+                        }
+                        // If no parent is found, we can assume it belongs to the root
+                        if (!foundParent) {
+                            root.getChildren().add(newItem);
+                        }
+                        itemMap.put(pathToFile, newItem);
+                        itemsToRemove.remove(newItem);
+                    }
+                }
+            }
+        }
+
+        // Remove all elements that shouldn't be displayed
+        for (TreeItem<RepoFile> item : itemsToRemove) {
+            //Platform.runLater(() -> {
+                if(item.getParent() != null) item.getParent().getChildren().remove(item);
+            //});
+            itemMap.remove(item.getValue().getFilePath());
+        }
     }
 
     /**
@@ -165,8 +164,7 @@ public class AllFilesPanelView extends FileStructurePanelView {
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException {
         Main.assertFxThread();
-//        return SessionModel.getSessionModel().getAllRepoFiles();
-        return null;
+        return SessionModel.getSessionModel().getAllRepoFiles();
     }
 
     /**

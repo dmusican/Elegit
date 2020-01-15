@@ -26,7 +26,7 @@ import java.util.List;
 // all methods must run on the FX thread. This class loses threadsafeness if any of that is changed.
 public abstract class FileStructurePanelView extends Region{
 
-    protected TreeView<String> directoryTreeView;
+    private TreeView<RepoFile> directoryTreeView;
     private TreeItem<RepoFile> treeRoot;
 
     /**
@@ -34,22 +34,19 @@ public abstract class FileStructurePanelView extends Region{
      * factory and add items to the tree.
      */
     public void init(){
-        System.out.println("Initting");
         // DRM: May not definitively need to be on FX thread, but putting it there for now to get architecture in shape
         Main.assertFxThread();
         this.directoryTreeView = new TreeView<>();
+        this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
 
+        DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", SessionModel.getSessionModel().getCurrentRepoHelper());
+        this.treeRoot = this.getRootTreeItem(rootDirectory);
+        this.treeRoot.setExpanded(true);
 
-//        this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
+        this.directoryTreeView.setRoot(this.treeRoot);
 
-//        DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", SessionModel.getSessionModel().getCurrentRepoHelper());
-//        this.treeRoot = this.getRootTreeItem(rootDirectory);
-//        this.treeRoot.setExpanded(true);
-//
-//        this.directoryTreeView.setRoot(this.treeRoot);
-//
-//        // TreeViews must all have ONE root to hold the leafs. Don't show that root:
-//        this.directoryTreeView.setShowRoot(false);
+        // TreeViews must all have ONE root to hold the leafs. Don't show that root:
+        this.directoryTreeView.setShowRoot(false);
 
         this.getChildren().clear();
         this.getChildren().add(directoryTreeView);
@@ -65,18 +62,18 @@ public abstract class FileStructurePanelView extends Region{
         // DRM: This is likely slow, and I may want to think about how to push some of this off on threads. For now,
         // however, I've got to back up and get this straight on the FX thread so I can get the architecture in shape.
         Main.assertFxThread();
-//        if(SessionModel.getSessionModel().getCurrentRepoHelper() == null) return;
-//
-//        if(this.treeRoot.getValue().getRepo() == null || !this.treeRoot.getValue().getRepo().equals(SessionModel.getSessionModel().getCurrentRepoHelper())) {
-//            this.init();
-//        }
+        if(SessionModel.getSessionModel().getCurrentRepoHelper() == null) return;
+
+        if(this.treeRoot.getValue().getRepo() == null || !this.treeRoot.getValue().getRepo().equals(SessionModel.getSessionModel().getCurrentRepoHelper())) {
+            this.init();
+        }
         List<RepoFile> filesToShow = this.getFilesToDisplay();
-        this.addTreeItemsToRoot(filesToShow);
+        this.addTreeItemsToRoot(filesToShow, this.treeRoot);
     }
 
     public void resetFileStructurePanelView() {
         this.directoryTreeView = new TreeView<>();
-//        this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
+        this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
         this.getChildren().clear();
         this.getChildren().add(directoryTreeView);
     }
@@ -92,8 +89,9 @@ public abstract class FileStructurePanelView extends Region{
     /**
      * Puts the given RepoFiles under the given root of the tree
      * @param repoFiles the files to add to the tree
+     * @param root the root of the tree
      */
-    protected abstract void addTreeItemsToRoot(List<RepoFile> repoFiles);
+    protected abstract void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root);
 
     /**
      * @param rootDirectory RepoFile corresponding to the root of the repository
