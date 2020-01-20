@@ -163,8 +163,8 @@ public class CommitAndPushFXTest extends ApplicationTest {
                 .press(KeyCode.TAB)
                 .release(KeyCode.TAB)
                 .release(KeyCode.SHIFT)
-                .press(KeyCode.ENTER);
-
+                .press(KeyCode.ENTER)
+                .release(KeyCode.ENTER);
 
 
         // Do the push
