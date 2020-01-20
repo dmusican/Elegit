@@ -89,9 +89,6 @@ public class BranchModel {
      */
     // synchronized for remoteBranchesTyped
     public synchronized void updateRemoteBranches() {
-        if (!repoHelper.getRemoteStatusChecking())
-            return;
-
         try {
             List<Ref> getBranchesCall = threadsafeGitManager.get().getRemoteBranches();
 
